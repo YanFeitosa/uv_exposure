@@ -1,11 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:uv_exposure_app/services/uv_data_service.dart';
+import 'package:uv_exposure_app/model/model.dart';
+import 'package:uv_exposure_app/widgets/custom_infobox.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class MonitorScreen extends StatefulWidget {
   final double spf;
   final String skinType;
+  late final Model model;
 
-  const MonitorScreen({super.key, required this.spf, required this.skinType});
+  MonitorScreen({super.key, required this.spf, required this.skinType}) {
+    model = Model(spf, skinType);
+  }
 
   @override
   _MonitorScreenState createState() => _MonitorScreenState();
@@ -14,80 +21,81 @@ class MonitorScreen extends StatefulWidget {
 class _MonitorScreenState extends State<MonitorScreen> {
   late Timer _timer;
   int _secondsElapsed = 0;
-  late int _safeExposureTime; // Tempo seguro de exposição em segundos
+  late int _safeExposureTime;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  double _currentUVIndex = 0.0;
+  late int _remainingSafeExposureTime;
+  late String _acumulatedExposure;
 
   @override
   void initState() {
     super.initState();
-    _safeExposureTime =
-        _calculateSafeExposureTime(); // Calcular o tempo seguro com base no FPS e no tipo de pele
+    fetchUVData().then((uvData) {
+      setState(() {
+        _currentUVIndex = uvData['indiceUV'];
+      });
+    }).catchError((e) {
+      debugPrint('Error fetching UV data: \$e');
+    });
+    _safeExposureTime = widget.model.initialSafeExposureTime(_currentUVIndex);
+    _remainingSafeExposureTime = _safeExposureTime;
+    _acumulatedExposure =
+        widget.model.getAcumulatedExposure().toStringAsFixed(2);
     _startTimer();
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      fetchUVData().then((uvData) {
+        setState(() {
+          _currentUVIndex = uvData['indiceUV'];
+        });
+      }).catchError((e) {
+        debugPrint('Error fetching UV data: \$e');
+      });
       setState(() {
         _secondsElapsed++;
+        widget.model.exposureAcumulator(_currentUVIndex, 1);
+        _safeExposureTime =
+            widget.model.safeExposureTime(_secondsElapsed, _currentUVIndex);
+        _remainingSafeExposureTime = _safeExposureTime - _secondsElapsed;
+        _acumulatedExposure =
+            widget.model.getAcumulatedExposure().toStringAsFixed(2);
       });
+
+      if (widget.model.getAcumulatedExposure() >= 100 ||
+          _remainingSafeExposureTime <= 0) {
+        _remainingSafeExposureTime = 0;
+        _playAlarm();
+      }
     });
   }
 
+  void _playAlarm() async {
+    await _audioPlayer.play(AssetSource('assets/audio/alarm.mp3'));
+  }
+
   String _formatTime(int seconds) {
-    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final hours = (seconds ~/ 3600).toString().padLeft(2, '0');
+    final minutes = ((seconds % 3600) ~/ 60).toString().padLeft(2, '0');
     final secs = (seconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$secs';
+    return '$hours:$minutes:$secs';
   }
 
-  // Função para calcular o tempo seguro com base no FPS e tipo de pele
-  int _calculateSafeExposureTime() {
-    double baseTime = 45 * 60; // 45 minutos em segundos
-
-    if (widget.spf == 15) {
-      baseTime *= 0.75;
-    } else if (widget.spf == 30) {
-      baseTime *= 1.0;
-    } else if (widget.spf == 50) {
-      baseTime *= 1.25;
-    }
-
-    // Ajuste de tempo com base no tipo de pele
-    switch (widget.skinType) {
-      case 'Tipo I - Muito clara':
-        baseTime *= 0.5;
-        break;
-      case 'Tipo II - Clara':
-        baseTime *= 0.6;
-        break;
-      case 'Tipo III - Média Clara':
-        baseTime *= 0.7;
-        break;
-      case 'Tipo IV - Média Escura':
-        baseTime *= 0.8;
-        break;
-      case 'Tipo V - Escura':
-        baseTime *= 0.9;
-        break;
-      case 'Tipo VI - Muito Escura':
-        baseTime *= 1.0;
-        break;
-    }
-
-    return baseTime.toInt();
-  }
-
-  Color _getColorForTime(int seconds) {
-    if (seconds <= _safeExposureTime / 2) {
-      return Color.lerp(
-          Colors.green, Colors.yellow, seconds / (_safeExposureTime / 2))!;
+  Color _getColorByExposure() {
+    if (widget.model.getAcumulatedExposure() <= 50) {
+      return Color.lerp(Colors.green, Colors.yellow,
+          widget.model.getAcumulatedExposure() / 50)!;
     } else {
       return Color.lerp(Colors.yellow, Colors.red,
-          (seconds - (_safeExposureTime / 2)) / (_safeExposureTime / 2))!;
+          (widget.model.getAcumulatedExposure() - 50) / 50)!;
     }
   }
 
@@ -96,124 +104,69 @@ class _MonitorScreenState extends State<MonitorScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xFFFFCE26), // Cor amarela para a AppBar
-        title: const Center(
-          child: Text(
-            'UV Monitoramento',
-            style: TextStyle(
-              fontSize: 22, // Fonte levemente maior
-              fontWeight: FontWeight.w800, // Negrito acentuado
-            ),
+        backgroundColor: const Color(0xFFFFCE26),
+        title: const Text(
+          'SUNSENSE',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
           ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm'),
+                  content: const Text(
+                      'Monitoring will be restarted. Are you sure you want to go back?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Dismiss the dialog
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Confirm'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(
-                    16), // Espaçamento interno do quadrado roxo
-                decoration: BoxDecoration(
-                  color: const Color(0xFF77347A), // Cor do quadrado roxo
-                  borderRadius: BorderRadius.circular(
-                      16), // Borda arredondada do quadrado roxo
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Tempo de Exposição',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Colors
-                            .white, // Cor branca para o texto dentro do quadrado roxo
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment
-                          .spaceBetween, // Espaço uniforme entre as colunas
-                      children: [
-                        // Quadrado branco envolvendo o "Total"
-                        Container(
-                          padding: const EdgeInsets.all(
-                              16), // Espaçamento interno do quadrado branco
-                          decoration: BoxDecoration(
-                            color: Colors.white, // Cor do quadrado branco
-                            borderRadius: BorderRadius.circular(
-                                16), // Borda arredondada do quadrado branco
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Total',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _formatTime(_secondsElapsed),
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getColorForTime(_secondsElapsed),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Quadrado branco envolvendo o "Seguro"
-                        Container(
-                          padding: const EdgeInsets.all(
-                              16), // Espaçamento interno do quadrado branco
-                          decoration: BoxDecoration(
-                            color: Colors.white, // Cor do quadrado branco
-                            borderRadius: BorderRadius.circular(
-                                16), // Borda arredondada do quadrado branco
-                          ),
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Seguro',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _formatTime(
-                                    _safeExposureTime), // Tempo seguro calculado
-                                style: const TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors
-                                      .red, // Mantém vermelho como cor fixa
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Índice UV Atual',
-                hintText: 'Insira o índice UV atual',
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                  child: CustomInfoBox(
+                      title: 'Safe Exposure Time',
+                      info: _formatTime(_remainingSafeExposureTime),
+                      infoColor: _getColorByExposure())),
+              Center(
+                  child: CustomInfoBox(
+                      title: 'Accumulated Exposure',
+                      info: "$_acumulatedExposure %",
+                      infoColor: _getColorByExposure())),
+              Center(
+                  child: CustomInfoBox(
+                      title: 'Global UV Index',
+                      info: _currentUVIndex.toStringAsFixed(0),
+                      infoColor: Colors.black)),
+            ],
+          ),
         ),
       ),
     );

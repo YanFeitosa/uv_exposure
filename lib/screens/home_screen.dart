@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'monitor_screen.dart'; // Importando MonitorScreen
+import 'monitor_screen.dart';
 
-// Variáveis globais para armazenar os valores selecionados
 String? selectedSpf;
 String? selectedSkinType;
 
@@ -10,7 +8,6 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _HomeScreenState createState() => _HomeScreenState();
 }
 
@@ -18,19 +15,29 @@ class _HomeScreenState extends State<HomeScreen> {
   String? spfValue;
   String? skinTypeValue;
 
+  @override
+  void initState() {
+    super.initState();
+    // Resetar os valores ao inicializar o estado
+    selectedSpf = null;
+    selectedSkinType = null;
+    spfValue = null;
+    skinTypeValue = null;
+  }
+
   bool get isButtonEnabled => spfValue != null && skinTypeValue != null;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFFCE26), // Cor amarela para a AppBar
+        backgroundColor: const Color(0xFFFFCE26),
         title: const Center(
           child: Text(
-            'UV Monitoramento',
+            'SUNSENSE',
             style: TextStyle(
-              fontSize: 22, // Fonte levemente maior
-              fontWeight: FontWeight.w800, // Negrito acentuado
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
@@ -40,15 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(
-              'assets/images/logo.svg', // Caminho para a imagem SVG
-              height: 400, // Altura ajustada
-              width: 400, // Largura ajustada
+            Image.asset(
+              'assets/images/image.png',
+              height: 400,
+              width: 400,
             ),
             const SizedBox(height: 24),
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
-                labelText: 'Fator de Proteção Solar (FPS)',
+                labelText: 'Sun Protection Factor (SPF)',
               ),
               items: <String>['15', '30', '50', '70'].map((String value) {
                 return DropdownMenuItem<String>(
@@ -65,15 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 32),
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
-                labelText: 'Fototipo de Pele',
+                labelText: 'Skin Phototype',
               ),
               items: <String>[
-                'Tipo I - Muito clara',
-                'Tipo II - Clara',
-                'Tipo III - Média Clara',
-                'Tipo IV - Média Escura',
-                'Tipo V - Escura',
-                'Tipo VI - Muito Escura'
+                'Type 0 - Test',
+                'Type I - Very Fair',
+                'Type II - Fair',
+                'Type III - Medium Fair',
+                'Type IV - Medium Dark',
+                'Type V - Dark',
+                'Type VI - Very Dark'
               ].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -95,8 +103,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => MonitorScreen(
-                            spf: double.parse(spfValue!), // Passando o SPF
-                            skinType: skinTypeValue!, // Passando o tipo de pele
+                            spf: double.parse(spfValue!),
+                            skinType: skinTypeValue!,
                           ),
                         ),
                       );

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http; // Importa o pacote http
 
 Future<Map<String, dynamic>> fetchUVData() async {
   // URL do servidor ESP8266 com mDNS
-  final url = Uri.parse('http://esp8266.local/uvdata');
+  final url = Uri.parse('http://192.168.4.1/uvdata');
 
   try {
     // Faz a requisição GET
