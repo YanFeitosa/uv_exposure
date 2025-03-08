@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Resetar os valores ao inicializar o estado
     selectedSpf = null;
     selectedSkinType = null;
     spfValue = null;
@@ -42,103 +41,111 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/image.png',
-              height: 400,
-              width: 400,
-            ),
-            const SizedBox(height: 24),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Sun Protection Factor (SPF)',
-              ),
-              items: <String>['15', '30', '50', '70'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  spfValue = newValue;
-                });
-              },
-            ),
-            const SizedBox(height: 32),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Skin Phototype',
-              ),
-              items: <String>[
-                'Type 0 - Test',
-                'Type I - Very Fair',
-                'Type II - Fair',
-                'Type III - Medium Fair',
-                'Type IV - Medium Dark',
-                'Type V - Dark',
-                'Type VI - Very Dark'
-              ].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  skinTypeValue = newValue;
-                });
-              },
-            ),
-            const SizedBox(height: 60),
-            ElevatedButton(
-              onPressed: isButtonEnabled
-                  ? () {
-                      // Navegar para MonitorScreen passando os parâmetros
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MonitorScreen(
-                            spf: double.parse(spfValue!),
-                            skinType: skinTypeValue!,
-                          ),
-                        ),
-                      );
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isButtonEnabled ? const Color(0xFF77347A) : null,
-                side: BorderSide(
-                  color: isButtonEnabled
-                      ? const Color(0xFF77347A)
-                      : const Color(0xFF77347A),
-                  width: 2,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double screenWidth = constraints.maxWidth;
+          double screenHeight = constraints.maxHeight;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: screenHeight * 0.40,
+                  child: Image.asset(
+                    'assets/images/image.png',
+                    width: screenWidth * 0.80,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                SizedBox(height: screenHeight * 0.02),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Sun Protection Factor (SPF)',
+                  ),
+                  items: <String>['15', '30', '50', '70'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      spfValue = newValue;
+                    });
+                  },
                 ),
-              ),
-              child: Text(
-                'Iniciar Monitoramento',
-                style: TextStyle(
-                  color: isButtonEnabled
-                      ? const Color.fromARGB(255, 255, 255, 255)
-                      : const Color(0xFF77347A),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                SizedBox(height: screenHeight * 0.04),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Skin Phototype',
+                  ),
+                  items: <String>[
+                    'Type 0 - Test',
+                    'Type I - Very Fair',
+                    'Type II - Fair',
+                    'Type III - Medium Fair',
+                    'Type IV - Medium Dark',
+                    'Type V - Dark',
+                    'Type VI - Very Dark'
+                  ].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      skinTypeValue = newValue;
+                    });
+                  },
                 ),
-              ),
+                SizedBox(height: screenHeight * 0.06),
+                ElevatedButton(
+                  onPressed: isButtonEnabled
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MonitorScreen(
+                                spf: double.parse(spfValue!),
+                                skinType: skinTypeValue!,
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isButtonEnabled ? const Color(0xFF77347A) : null,
+                    side: const BorderSide(
+                      color: Color(0xFF77347A),
+                      width: 2,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.15,
+                      vertical: screenHeight * 0.02,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Start Monitoring',
+                    style: TextStyle(
+                      color: isButtonEnabled
+                          ? Colors.white
+                          : const Color(0xFF77347A),
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 60),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

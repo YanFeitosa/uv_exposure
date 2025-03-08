@@ -40,11 +40,7 @@ class Model {
 
   int initialSafeExposureTime(double uvIndex) {
     late int safeTime;
-    if (uvIndex == 0) {
-      safeTime = (_spf * tep).toInt();
-    } else {
-      safeTime = ((_spf * tep) / uvIndex).toInt();
-    }
+    safeTime = ((_spf * tep) / uvIndex).toInt();
 
     safeTime = toSeconds(0, safeTime, 0);
     return safeTime;
@@ -64,11 +60,7 @@ class Model {
 
   int safeExposureTime(int secondsElapsed, double uvIndex) {
     late int safeTime;
-    if (getAcumulatedExposure() != 0) {
-      safeTime = (secondsElapsed * 100 / getAcumulatedExposure()).toInt();
-    } else {
-      safeTime = initialSafeExposureTime(uvIndex);
-    }
+    safeTime = ((secondsElapsed * 100) / acumulatedExposurePercent).toInt();
 
     return safeTime;
   }

@@ -1,0 +1,2 @@
+C:/programacao/personal/camila/uv_exposure_app/android/app/.cxx/Debug/3e6u666x/x86/CMakeFiles/edit_cache.dir
+C:/programacao/personal/camila/uv_exposure_app/android/app/.cxx/Debug/3e6u666x/x86/CMakeFiles/rebuild_cache.dir

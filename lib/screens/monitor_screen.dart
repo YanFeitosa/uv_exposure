@@ -23,20 +23,13 @@ class _MonitorScreenState extends State<MonitorScreen> {
   int _secondsElapsed = 0;
   late int _safeExposureTime;
   final AudioPlayer _audioPlayer = AudioPlayer();
-  double _currentUVIndex = 0.0;
+  double _currentUVIndex = 1.0;
   late int _remainingSafeExposureTime;
   late String _acumulatedExposure;
 
   @override
   void initState() {
     super.initState();
-    fetchUVData().then((uvData) {
-      setState(() {
-        _currentUVIndex = uvData['indiceUV'];
-      });
-    }).catchError((e) {
-      debugPrint('Error fetching UV data: \$e');
-    });
     _safeExposureTime = widget.model.initialSafeExposureTime(_currentUVIndex);
     _remainingSafeExposureTime = _safeExposureTime;
     _acumulatedExposure =
@@ -55,13 +48,18 @@ class _MonitorScreenState extends State<MonitorScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       fetchUVData().then((uvData) {
         setState(() {
-          _currentUVIndex = uvData['indiceUV'];
+          if (uvData['indiceUV'] == 0) {
+            _currentUVIndex = 1;
+          } else {
+            _currentUVIndex = uvData['indiceUV'];
+          }
         });
       }).catchError((e) {
-        debugPrint('Error fetching UV data: \$e');
+        debugPrint('Error fetching UV data: $e');
       });
       setState(() {
         _secondsElapsed++;
+
         widget.model.exposureAcumulator(_currentUVIndex, 1);
         _safeExposureTime =
             widget.model.safeExposureTime(_secondsElapsed, _currentUVIndex);
@@ -96,6 +94,20 @@ class _MonitorScreenState extends State<MonitorScreen> {
     } else {
       return Color.lerp(Colors.yellow, Colors.red,
           (widget.model.getAcumulatedExposure() - 50) / 50)!;
+    }
+  }
+
+  Color _getColorByUVIndex() {
+    if (_currentUVIndex <= 2) {
+      return Colors.green;
+    } else if (_currentUVIndex <= 5) {
+      return Colors.yellow;
+    } else if (_currentUVIndex <= 7) {
+      return Colors.orange;
+    } else if (_currentUVIndex <= 10) {
+      return Colors.red;
+    } else {
+      return Colors.purple;
     }
   }
 
@@ -144,30 +156,46 @@ class _MonitorScreenState extends State<MonitorScreen> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                  child: CustomInfoBox(
-                      title: 'Safe Exposure Time',
-                      info: _formatTime(_remainingSafeExposureTime),
-                      infoColor: _getColorByExposure())),
-              Center(
-                  child: CustomInfoBox(
-                      title: 'Accumulated Exposure',
-                      info: "$_acumulatedExposure %",
-                      infoColor: _getColorByExposure())),
-              Center(
-                  child: CustomInfoBox(
-                      title: 'Global UV Index',
-                      info: _currentUVIndex.toStringAsFixed(0),
-                      infoColor: Colors.black)),
-            ],
-          ),
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double screenWidth = constraints.maxWidth;
+          double screenHeight = constraints.maxHeight;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: screenHeight * 0.02),
+                  CustomInfoBox(
+                    title: 'Elapsed Time',
+                    info: _formatTime(_secondsElapsed),
+                    infoColor: _getColorByExposure(),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  CustomInfoBox(
+                    title: 'Safe Exposure Time',
+                    info: _formatTime(_remainingSafeExposureTime),
+                    infoColor: _getColorByExposure(),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  CustomInfoBox(
+                    title: 'Accumulated Exposure',
+                    info: "$_acumulatedExposure %",
+                    infoColor: _getColorByExposure(),
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  CustomInfoBox(
+                    title: 'Global UV Index',
+                    info: _currentUVIndex.toStringAsFixed(0),
+                    infoColor: _getColorByUVIndex(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

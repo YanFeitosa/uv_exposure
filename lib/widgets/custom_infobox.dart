@@ -32,7 +32,7 @@ class CustomInfoBox extends StatelessWidget {
             ),
           ),
           Container(
-            margin: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
