@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'monitor_screen.dart';
 
-String? selectedSpf;
-String? selectedSkinType;
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -14,12 +11,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? spfValue;
   String? skinTypeValue;
+  bool isDemo = false;
 
   @override
   void initState() {
     super.initState();
-    selectedSpf = null;
-    selectedSkinType = null;
     spfValue = null;
     skinTypeValue = null;
   }
@@ -39,6 +35,48 @@ class _HomeScreenState extends State<HomeScreen> {
               fontWeight: FontWeight.w800,
             ),
           ),
+        ),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Scaffold.of(context).openEndDrawer();
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFFFFCE26),
+              ),
+              child: Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListTile(
+              title: Text('Demo Mode'),
+              trailing: Checkbox(
+                value: isDemo,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isDemo = value ?? false;
+                  });
+                },
+              ),
+            ),
+          ],
         ),
       ),
       body: LayoutBuilder(
@@ -109,6 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => MonitorScreen(
+                                isDemo: isDemo,
                                 spf: double.parse(spfValue!),
                                 skinType: skinTypeValue!,
                               ),

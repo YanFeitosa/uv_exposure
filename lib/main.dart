@@ -22,7 +22,10 @@ class MyApp extends StatelessWidget {
         '/monitor': (context) {
           final args = ModalRoute.of(context)!.settings.arguments
               as Map<String, dynamic>;
-          return MonitorScreen(spf: args['spf'], skinType: args['skinType']);
+          return MonitorScreen(
+              spf: args['spf'],
+              skinType: args['skinType'],
+              isDemo: args['isDemo']);
         },
       },
     );

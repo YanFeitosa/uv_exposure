@@ -8,9 +8,14 @@ import 'package:audioplayers/audioplayers.dart';
 class MonitorScreen extends StatefulWidget {
   final double spf;
   final String skinType;
+  final bool isDemo;
   late final Model model;
 
-  MonitorScreen({super.key, required this.spf, required this.skinType}) {
+  MonitorScreen(
+      {super.key,
+      required this.spf,
+      required this.skinType,
+      required this.isDemo}) {
     model = Model(spf, skinType);
   }
 
@@ -46,7 +51,7 @@ class _MonitorScreenState extends State<MonitorScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      fetchUVData().then((uvData) {
+      fetchUVData(widget.isDemo).then((uvData) {
         setState(() {
           if (uvData['indiceUV'] == 0) {
             _currentUVIndex = 1;
