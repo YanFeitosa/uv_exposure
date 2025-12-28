@@ -1,30 +1,81 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// This is a basic Flutter widget test for the SunSense app.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:uv_exposure_app/main.dart';
+import 'package:provider/provider.dart';
+import 'package:uv_exposure_app/core/providers/exposure_provider.dart';
+import 'package:uv_exposure_app/core/providers/history_provider.dart';
+import 'package:uv_exposure_app/core/constants/app_strings.dart';
+import 'package:uv_exposure_app/features/home/home_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('HomeScreen displays app title', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ExposureProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: HomeScreen(),
+        ),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the app title is displayed
+    expect(find.text(AppStrings.appTitle), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('HomeScreen displays SPF dropdown', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ExposureProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: HomeScreen(),
+        ),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify that SPF dropdown label is displayed
+    expect(find.text(AppStrings.spfLabel), findsOneWidget);
+  });
+
+  testWidgets('HomeScreen displays Skin Type dropdown', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ExposureProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: HomeScreen(),
+        ),
+      ),
+    );
+
+    // Verify that Skin Type dropdown label is displayed
+    expect(find.text(AppStrings.skinTypeLabel), findsOneWidget);
+  });
+
+  testWidgets('Start button is displayed', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ExposureProvider()),
+          ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ],
+        child: const MaterialApp(
+          home: HomeScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Find the start button text - should exist in the widget tree
+    expect(find.text(AppStrings.startMonitoring), findsOneWidget);
   });
 }

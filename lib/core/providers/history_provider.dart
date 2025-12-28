@@ -1,0 +1,161 @@
+import 'package:flutter/foundation.dart';
+import '../models/exposure_model.dart';
+import '../services/storage_service.dart';
+
+/// Provider para gerenciar o histórico de exposição
+class HistoryProvider extends ChangeNotifier {
+  List<ExposureSession> _sessions = [];
+  bool _isLoading = false;
+  String? _error;
+
+  // Getters
+  List<ExposureSession> get sessions => _sessions;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  bool get hasData => _sessions.isNotEmpty;
+
+  /// Carrega todo o histórico
+  Future<void> loadHistory() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _sessions = await StorageService.getExposureHistory();
+      _sessions.sort((a, b) => b.startTime.compareTo(a.startTime)); // Mais recentes primeiro
+    } catch (e) {
+      _error = 'Failed to load history: $e';
+      debugPrint(_error);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Carrega sessões de hoje
+  Future<void> loadTodaySessions() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _sessions = await StorageService.getTodaySessions();
+      _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
+    } catch (e) {
+      _error = 'Failed to load today\'s sessions: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Carrega sessões dos últimos N dias
+  Future<void> loadSessionsLastDays(int days) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _sessions = await StorageService.getSessionsLastDays(days);
+      _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
+    } catch (e) {
+      _error = 'Failed to load sessions: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Calcula estatísticas gerais
+  Map<String, dynamic> getStatistics() {
+    if (_sessions.isEmpty) {
+      return {
+        'totalSessions': 0,
+        'totalDuration': Duration.zero,
+        'averageExposure': 0.0,
+        'maxExposure': 0.0,
+        'averageUVIndex': 0.0,
+        'maxUVIndex': 0.0,
+      };
+    }
+
+    Duration totalDuration = Duration.zero;
+    double totalExposure = 0;
+    double maxExposure = 0;
+    double totalUVIndex = 0;
+    double maxUVIndex = 0;
+
+    for (final session in _sessions) {
+      totalDuration += session.duration;
+      totalExposure += session.maxExposurePercent;
+      totalUVIndex += session.maxUVIndex;
+      
+      if (session.maxExposurePercent > maxExposure) {
+        maxExposure = session.maxExposurePercent;
+      }
+      if (session.maxUVIndex > maxUVIndex) {
+        maxUVIndex = session.maxUVIndex;
+      }
+    }
+
+    return {
+      'totalSessions': _sessions.length,
+      'totalDuration': totalDuration,
+      'averageExposure': totalExposure / _sessions.length,
+      'maxExposure': maxExposure,
+      'averageUVIndex': totalUVIndex / _sessions.length,
+      'maxUVIndex': maxUVIndex,
+    };
+  }
+
+  /// Retorna dados para o gráfico de exposição diária
+  List<Map<String, dynamic>> getDailyExposureData(int days) {
+    final now = DateTime.now();
+    final data = <Map<String, dynamic>>[];
+
+    for (int i = days - 1; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final daySessions = _sessions.where((s) =>
+          s.startTime.isAfter(startOfDay) && s.startTime.isBefore(endOfDay));
+
+      double totalExposure = 0;
+      double maxUV = 0;
+      Duration totalDuration = Duration.zero;
+
+      for (final session in daySessions) {
+        totalExposure += session.maxExposurePercent;
+        if (session.maxUVIndex > maxUV) maxUV = session.maxUVIndex;
+        totalDuration += session.duration;
+      }
+
+      data.add({
+        'date': startOfDay,
+        'exposure': totalExposure,
+        'maxUVIndex': maxUV,
+        'duration': totalDuration,
+        'sessions': daySessions.length,
+      });
+    }
+
+    return data;
+  }
+
+  /// Limpa o histórico
+  Future<void> clearHistory() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await StorageService.clearHistory();
+      _sessions = [];
+    } catch (e) {
+      _error = 'Failed to clear history: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+}
