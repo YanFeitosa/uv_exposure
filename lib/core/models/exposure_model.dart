@@ -1,6 +1,6 @@
 import '../constants/app_constants.dart';
 
-/// Modelo de dados para uma leitura UV
+/// Modelo de dados para uma leitura individual de UV
 class UVReading {
   final double uvIndex;
   final DateTime timestamp;
@@ -21,7 +21,7 @@ class UVReading {
   );
 }
 
-/// Modelo de dados para uma sessão de exposição
+/// Modelo de dados para uma sessão completa de exposição UV
 class ExposureSession {
   final String id;
   final DateTime startTime;
@@ -95,7 +95,8 @@ class ExposureSession {
   );
 }
 
-/// Modelo de cálculo de exposição UV com encapsulamento adequado
+/// Modelo de cálculo de exposição UV.
+/// Encapsula TEP, SPF e fórmulas de acúmulo e tempo seguro.
 class ExposureModel {
   final double _tep;
   final double _spf;
@@ -103,15 +104,14 @@ class ExposureModel {
 
   /// Cria um novo modelo de exposição.
   /// 
-  /// [spf] - Fator de proteção solar do protetor utilizado
-  /// [skinType] - Tipo de pele (Fitzpatrick scale)
+  /// skinType - Fototipo de pele (escala Fitzpatrick I-VI)
   ExposureModel({required double spf, required String skinType})
-      : _spf = spf,
+      : _spf = spf <= 0 ? 1.0 : spf,
         _tep = _calculateTEP(skinType);
 
-  /// Calcula o TEP baseado no tipo de pele
+  /// Calcula o TEP baseado no fototipo de pele
   static double _calculateTEP(String skinType) {
-    return AppConstants.tepBySkinType[skinType] ?? 15.0;
+    return AppConstants.tepBySkinType[skinType] ?? AppConstants.defaultTEP;
   }
 
   /// Retorna o TEP (Tempo de Eritema Pele) em minutos
@@ -123,39 +123,39 @@ class ExposureModel {
   /// Retorna a porcentagem de exposição acumulada
   double get accumulatedExposurePercent => _accumulatedExposurePercent;
 
-  /// Converte horas, minutos e segundos para segundos totais
+  /// Converte horas, minutos e segundos em total de segundos
   int _toSeconds(int hours, int minutes, int seconds) {
     return (hours * 3600) + (minutes * 60) + seconds;
   }
 
-  /// Calcula o tempo inicial de exposição segura baseado no índice UV
+  /// Calcula o tempo inicial de exposição segura baseado no índice UV atual
   /// 
-  /// Retorna o tempo em segundos
+  /// Retorna o tempo em segundos: (SPF × TEP) / UV
   int calculateInitialSafeExposureTime(double uvIndex) {
     if (uvIndex <= 0) uvIndex = 1;
     final safeTimeMinutes = (_spf * _tep) / uvIndex;
     return _toSeconds(0, safeTimeMinutes.toInt(), 0);
   }
 
-  /// Acumula a exposição baseado no índice UV e tempo decorrido
+  /// Acumula a exposição UV proporcionalmente ao índice UV e tempo decorrido
   /// 
-  /// [uvIndex] - Índice UV atual
-  /// [timeSeconds] - Tempo de exposição em segundos
+  /// uvIndex - Índice UV atual do sensor
+  /// timeSeconds - Intervalo de tempo em segundos (normalmente 1)
   void accumulateExposure(double uvIndex, int timeSeconds) {
     if (uvIndex <= 0) return;
     _accumulatedExposurePercent += (uvIndex * timeSeconds) / (_tep * _spf * 60);
   }
 
-  /// Calcula o tempo de exposição segura restante
+  /// Calcula o tempo total de exposição segura estimado
   /// 
-  /// [secondsElapsed] - Segundos já decorridos
-  /// Retorna o tempo total seguro em segundos
+  /// secondsElapsed - Segundos já decorridos na sessão
+  /// Retorna estimativa do tempo total seguro em segundos
   int calculateSafeExposureTime(int secondsElapsed) {
-    if (_accumulatedExposurePercent <= 0.0001) return 0;
+    if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold) return 0;
     return ((secondsElapsed * 100) / _accumulatedExposurePercent).toInt();
   }
 
-  /// Calcula o tempo restante de exposição segura
+  /// Calcula o tempo restante de exposição segura (total - decorrido)
   int calculateRemainingSafeTime(int secondsElapsed) {
     final totalSafeTime = calculateSafeExposureTime(secondsElapsed);
     final remaining = totalSafeTime - secondsElapsed;
@@ -168,12 +168,12 @@ class ExposureModel {
   /// Verifica se a exposição atingiu o limite de aviso
   bool get isWarning => _accumulatedExposurePercent >= AppConstants.exposureWarningThreshold;
 
-  /// Reseta a exposição acumulada
+  /// Reseta a exposição acumulada para zero
   void reset() {
     _accumulatedExposurePercent = 0.0;
   }
 
-  /// Define manualmente a exposição acumulada (para restaurar sessões)
+  /// Define manualmente a exposição acumulada (usado para restaurar sessões salvas)
   void setAccumulatedExposure(double value) {
     _accumulatedExposurePercent = value.clamp(0.0, double.infinity);
   }

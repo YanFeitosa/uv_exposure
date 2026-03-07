@@ -1,7 +1,8 @@
 import 'dart:io' show Platform;
-import 'dart:ui' show Color;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
 
 /// Serviço para gerenciar notificações locais
@@ -14,18 +15,18 @@ class NotificationService {
   /// Verifica se as notificações estão habilitadas
   static bool get isEnabled => _isInitialized && _permissionGranted;
   
-  /// Verifica se está em uma plataforma suportada
+  /// Verifica se está em plataforma suportada (não-web)
   static bool get _isSupported => !kIsWeb;
 
   /// Inicializa o serviço de notificações
   static Future<bool> init() async {
-    // Não inicializa no web
+    // Não inicializa em plataforma web
     if (!_isSupported) return false;
     
     if (_isInitialized) return true;
 
     try {
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -47,13 +48,13 @@ class NotificationService {
         return false;
       }
 
-      // Cria o canal de notificação para Android
+      // Cria canal de notificação Android (obrigatório para Android 8+)
       await _createNotificationChannel();
       
       _isInitialized = true;
       return true;
     } catch (e) {
-      debugPrint('NotificationService init error: $e');
+      debugPrint('NotificationService: erro na inicialização: $e');
       return false;
     }
   }
@@ -75,16 +76,14 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('Notification tapped: ${response.payload}');
-    // Pode ser usado para navegação quando o usuário toca na notificação
+    debugPrint('Notificação tocada: ${response.payload}');
+    // Pode ser usado para navegação ao tocar na notificação
   }
 
-  /// Solicita permissão para notificações
-  /// Retorna true se a permissão foi concedida
+  /// Solicita permissão para enviar notificações
   static Future<bool> requestPermission() async {
     if (!_isSupported) return false;
     
-    // Garante que o serviço está inicializado
     if (!_isInitialized) {
       final initialized = await init();
       if (!initialized) return false;
@@ -93,13 +92,12 @@ class NotificationService {
     try {
       bool granted = false;
       
-      // Android 13+ (API 33) requer permissão explícita
+      // Android 13+ requer permissão explícita
       if (!kIsWeb && Platform.isAndroid) {
         final android = _notifications.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
         
         if (android != null) {
-          // Verifica se já tem permissão
           final areEnabled = await android.areNotificationsEnabled();
           if (areEnabled == true) {
             _permissionGranted = true;
@@ -123,7 +121,7 @@ class NotificationService {
           ) ?? false;
         }
       }
-      // Outras plataformas (macOS, Linux, etc.)
+      // Outras plataformas — permissão assumida
       else {
         granted = true;
       }
@@ -132,7 +130,7 @@ class NotificationService {
       debugPrint('NotificationService: permissão ${granted ? "concedida" : "negada"}');
       return granted;
     } catch (e) {
-      debugPrint('NotificationService requestPermission error: $e');
+      debugPrint('NotificationService: erro ao solicitar permissão: $e');
       return false;
     }
   }
@@ -153,7 +151,7 @@ class NotificationService {
     }
   }
 
-  /// Mostra notificação de aviso de exposição (75%)
+  /// Exibe notificação de aviso de exposição UV (75%)
   static Future<void> showExposureWarning(double percent) async {
     if (!_isSupported) return;
     if (!_isInitialized) await init();
@@ -165,8 +163,8 @@ class NotificationService {
       channelDescription: AppStrings.notificationChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      color: Color(0xFFFFCE26),
+      icon: '@drawable/ic_notification',
+      color: AppColors.uvHigh,
     );
 
     const iosDetails = DarwinNotificationDetails(
@@ -186,15 +184,15 @@ class NotificationService {
     );
 
     await _notifications.show(
-      1, // Warning notification ID
+      AppConstants.notificationWarningId,
       AppStrings.exposureWarningTitle,
       body,
       details,
-      payload: 'exposure_warning',
+      payload: AppConstants.notificationWarningPayload,
     );
   }
 
-  /// Mostra notificação crítica de exposição (100%)
+  /// Exibe notificação crítica de exposição UV (100%)
   static Future<void> showExposureCritical() async {
     if (!_isSupported) return;
     if (!_isInitialized) await init();
@@ -206,8 +204,8 @@ class NotificationService {
       channelDescription: AppStrings.notificationChannelDescription,
       importance: Importance.max,
       priority: Priority.max,
-      icon: '@mipmap/ic_launcher',
-      color: Color(0xFFFF0000),
+      icon: '@drawable/ic_notification',
+      color: AppColors.notificationCritical,
       fullScreenIntent: true,
     );
 
@@ -224,20 +222,145 @@ class NotificationService {
     );
 
     await _notifications.show(
-      2, // Critical notification ID
+      AppConstants.notificationCriticalId,
       AppStrings.exposureCriticalTitle,
       AppStrings.exposureCriticalBody,
       details,
-      payload: 'exposure_critical',
+      payload: AppConstants.notificationCriticalPayload,
     );
   }
 
-  /// Cancela todas as notificações
+  /// Exibe notificação de perda de conexão com o sensor
+  static Future<void> showCacheWarning() async {
+    if (!_isSupported) return;
+    if (!_isInitialized) await init();
+    if (!_isInitialized || !_permissionGranted) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      AppStrings.notificationChannelId,
+      AppStrings.notificationChannelName,
+      channelDescription: AppStrings.notificationChannelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@drawable/ic_notification',
+      color: AppColors.primary,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(
+      AppConstants.notificationCacheId,
+      AppStrings.cacheNotificationTitle,
+      AppStrings.cacheNotificationBody,
+      details,
+      payload: AppConstants.notificationCachePayload,
+    );
+  }
+
+  /// Exibe notificação de parada por desconexão prolongada
+  static Future<void> showMonitoringStopped() async {
+    if (!_isSupported) return;
+    if (!_isInitialized) await init();
+    if (!_isInitialized || !_permissionGranted) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      AppStrings.notificationChannelId,
+      AppStrings.notificationChannelName,
+      channelDescription: AppStrings.notificationChannelDescription,
+      importance: Importance.max,
+      priority: Priority.max,
+      icon: '@drawable/ic_notification',
+      color: AppColors.notificationCritical,
+      fullScreenIntent: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      interruptionLevel: InterruptionLevel.timeSensitive,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final body = AppStrings.stoppedNotificationBody.replaceAll(
+      '{minutes}',
+      '${AppConstants.cacheExpiration.inMinutes}',
+    );
+
+    await _notifications.show(
+      AppConstants.notificationStoppedId,
+      AppStrings.stoppedNotificationTitle,
+      body,
+      details,
+      payload: AppConstants.notificationStoppedPayload,
+    );
+  }
+
+  /// Exibe notificação de exposição simulada durante gap do sistema
+  static Future<void> showGapWarning({
+    required int gapSeconds,
+    required int compensatedSeconds,
+    required double uvIndex,
+  }) async {
+    if (!_isSupported) return;
+    if (!_isInitialized) await init();
+    if (!_isInitialized || !_permissionGranted) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      AppStrings.notificationChannelId,
+      AppStrings.notificationChannelName,
+      channelDescription: AppStrings.notificationChannelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@drawable/ic_notification',
+      color: AppColors.primary,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    final minutes = gapSeconds ~/ 60;
+    final seconds = gapSeconds % 60;
+    final durationStr = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+
+    final body = AppStrings.gapNotificationBody.replaceAll('{minutes}', durationStr);
+
+    await _notifications.show(
+      AppConstants.notificationGapId,
+      AppStrings.gapNotificationTitle,
+      body,
+      details,
+      payload: AppConstants.notificationGapPayload,
+    );
+  }
+
+  /// Cancela todas as notificações ativas
   static Future<void> cancelAll() async {
     await _notifications.cancelAll();
   }
 
-  /// Cancela uma notificação específica
+  /// Cancela uma notificação específica pelo ID
   static Future<void> cancel(int id) async {
     await _notifications.cancel(id);
   }

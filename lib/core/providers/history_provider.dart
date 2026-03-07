@@ -1,20 +1,21 @@
 import 'package:flutter/foundation.dart';
+import '../constants/app_strings.dart';
 import '../models/exposure_model.dart';
 import '../services/storage_service.dart';
 
-/// Provider para gerenciar o histórico de exposição
+/// Provider para gerenciar o histórico de sessões de exposição UV
 class HistoryProvider extends ChangeNotifier {
   List<ExposureSession> _sessions = [];
   bool _isLoading = false;
   String? _error;
 
-  // Getters
+  // Getters públicos
   List<ExposureSession> get sessions => _sessions;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasData => _sessions.isNotEmpty;
 
-  /// Carrega todo o histórico
+  /// Carrega todo o histórico de sessões
   Future<void> loadHistory() async {
     _isLoading = true;
     _error = null;
@@ -22,9 +23,9 @@ class HistoryProvider extends ChangeNotifier {
 
     try {
       _sessions = await StorageService.getExposureHistory();
-      _sessions.sort((a, b) => b.startTime.compareTo(a.startTime)); // Mais recentes primeiro
+      _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     } catch (e) {
-      _error = 'Failed to load history: $e';
+      _error = '${AppStrings.failedToLoadHistory}: $e';
       debugPrint(_error);
     } finally {
       _isLoading = false;
@@ -32,7 +33,7 @@ class HistoryProvider extends ChangeNotifier {
     }
   }
 
-  /// Carrega sessões de hoje
+  /// Carrega sessões realizadas hoje
   Future<void> loadTodaySessions() async {
     _isLoading = true;
     _error = null;
@@ -42,7 +43,7 @@ class HistoryProvider extends ChangeNotifier {
       _sessions = await StorageService.getTodaySessions();
       _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     } catch (e) {
-      _error = 'Failed to load today\'s sessions: $e';
+      _error = '${AppStrings.failedToLoadSessions}: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -59,14 +60,14 @@ class HistoryProvider extends ChangeNotifier {
       _sessions = await StorageService.getSessionsLastDays(days);
       _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     } catch (e) {
-      _error = 'Failed to load sessions: $e';
+      _error = '${AppStrings.failedToLoadSessions}: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Calcula estatísticas gerais
+  /// Calcula estatísticas do período carregado
   Map<String, dynamic> getStatistics() {
     if (_sessions.isEmpty) {
       return {
@@ -108,7 +109,7 @@ class HistoryProvider extends ChangeNotifier {
     };
   }
 
-  /// Retorna dados para o gráfico de exposição diária
+  /// Retorna dados agregados por dia para o gráfico
   List<Map<String, dynamic>> getDailyExposureData(int days) {
     final now = DateTime.now();
     final data = <Map<String, dynamic>>[];
@@ -143,7 +144,7 @@ class HistoryProvider extends ChangeNotifier {
     return data;
   }
 
-  /// Limpa o histórico
+  /// Limpa todo o histórico de sessões
   Future<void> clearHistory() async {
     _isLoading = true;
     notifyListeners();
@@ -152,7 +153,7 @@ class HistoryProvider extends ChangeNotifier {
       await StorageService.clearHistory();
       _sessions = [];
     } catch (e) {
-      _error = 'Failed to clear history: $e';
+      _error = '${AppStrings.failedToLoadHistory}: $e';
     } finally {
       _isLoading = false;
       notifyListeners();

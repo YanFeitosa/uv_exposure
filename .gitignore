@@ -41,3 +41,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Guia do relatório técnico (uso interno)
+RELATORIO_TECNICO_GUIA.md

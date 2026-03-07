@@ -65,7 +65,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _loadData,
-                    child: const Text('Retry'),
+                    child: const Text(AppStrings.tryAgain),
                   ),
                 ],
               ),
@@ -96,17 +96,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Statistics Cards
+                // Cards de estatísticas
                 _buildStatisticsSection(stats),
                 
                 const SizedBox(height: 24),
                 
-                // Chart
+                // Gráfico de barras
                 _buildChartSection(chartData),
                 
                 const SizedBox(height: 24),
                 
-                // Session List
+                // Lista de sessões
                 _buildSessionList(provider.sessions),
               ],
             ),
@@ -121,7 +121,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Statistics',
+          AppStrings.statistics,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -131,7 +131,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Sessions',
+                AppStrings.sessions,
                 '${stats['totalSessions'] ?? 0}',
                 Icons.timer,
                 AppColors.secondary,
@@ -140,7 +140,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Avg Exposure',
+                AppStrings.averageExposure,
                 '${((stats['averageExposure'] ?? 0.0) as double).toStringAsFixed(1)}%',
                 Icons.wb_sunny,
                 Colors.orange,
@@ -153,7 +153,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'Max UV',
+                AppStrings.maxUV,
                 (stats['maxUVIndex'] as double).toStringAsFixed(1),
                 Icons.trending_up,
                 Colors.red,
@@ -162,7 +162,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Total Time',
+                AppStrings.totalTime,
                 _formatDuration(stats['totalDuration'] as Duration),
                 Icons.access_time,
                 Colors.blue,
@@ -175,7 +175,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    // Se a cor é similar ao fundo do card, usa branco para contraste
+    // Cor de contraste para o card
     final displayColor = color == AppColors.secondary ? Colors.white : color;
     
     return Card(
@@ -213,7 +213,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Daily Exposure',
+          AppStrings.dailyExposure,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -317,7 +317,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Sessions',
+          AppStrings.sessions,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -356,13 +356,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          'Duration: ${_formatDuration(session.duration)} • Max UV: ${session.maxUVIndex.toStringAsFixed(1)}',
+          '${AppStrings.durationLabel}: ${_formatDuration(session.duration)} • ${AppStrings.maxUV} ${session.maxUVIndex.toStringAsFixed(1)}',
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'SPF ${session.spf.toInt()}',
+              '${AppStrings.spfPrefix} ${session.spf.toInt()}',
               style: TextStyle(
                 color: AppColors.secondary,
                 fontWeight: FontWeight.bold,
@@ -381,15 +381,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     String dateStr;
     if (date == today) {
-      dateStr = 'Today';
+      dateStr = AppStrings.today;
     } else if (date == today.subtract(const Duration(days: 1))) {
-      dateStr = 'Yesterday';
+      dateStr = AppStrings.yesterday;
     } else {
       dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
 
     final time = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    return '$dateStr at $time';
+    return '$dateStr ${AppStrings.atTime} $time';
   }
 
   String _formatDuration(Duration duration) {

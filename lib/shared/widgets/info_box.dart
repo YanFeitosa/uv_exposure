@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
-/// Widget de caixa de informação reutilizável
+/// Widget reutilizável de caixa de informação com título e valor colorido
 class InfoBox extends StatelessWidget {
   final String title;
   final String info;

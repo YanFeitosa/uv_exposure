@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
-/// Tema do aplicativo SunSense
 class AppTheme {
   AppTheme._();
 
@@ -13,18 +12,18 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       visualDensity: VisualDensity.adaptivePlatformDensity,
 
-      // ColorScheme
+      // Esquema de cores
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         surface: AppColors.surface,
-        error: Colors.red,
+        error: AppColors.error,
         onPrimary: AppColors.textOnPrimary,
         onSecondary: AppColors.textOnSecondary,
         onSurface: AppColors.textPrimary,
       ),
 
-      // AppBar Theme
+      // Tema do AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textOnPrimary,
@@ -37,7 +36,7 @@ class AppTheme {
         ),
       ),
 
-      // Elevated Button Theme
+      // Tema do ElevatedButton
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.secondary,
@@ -53,7 +52,7 @@ class AppTheme {
         ),
       ),
 
-      // Text Button Theme
+      // Tema do TextButton
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.secondary,
@@ -72,7 +71,7 @@ class AppTheme {
         labelStyle: const TextStyle(color: AppColors.textSecondary),
       ),
 
-      // Dropdown Menu Theme
+      // Tema do DropdownMenu
       dropdownMenuTheme: DropdownMenuThemeData(
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
@@ -81,7 +80,7 @@ class AppTheme {
         ),
       ),
 
-      // Card Theme
+      // Tema do Card
       cardTheme: CardThemeData(
         color: AppColors.cardBackground,
         shape: RoundedRectangleBorder(
@@ -90,7 +89,7 @@ class AppTheme {
         elevation: 2,
       ),
 
-      // Dialog Theme
+      // Tema do Dialog
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -100,7 +99,6 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    // Pode ser implementado futuramente
     return lightTheme;
   }
 }

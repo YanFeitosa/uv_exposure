@@ -1,13 +1,16 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../constants/app_constants.dart';
+import '../constants/app_strings.dart';
 import '../models/exposure_model.dart';
 import '../services/uv_data_service.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
+import '../services/foreground_service.dart';
 
-/// Estados de conexão do dispositivo
+/// Estados de conexão com o dispositivo IoT
 enum ConnectionStatus {
   connected,
   disconnected,
@@ -15,39 +18,54 @@ enum ConnectionStatus {
   usingCache,
 }
 
-/// Provider para gerenciar o estado do monitoramento de exposição UV
+/// Provider principal: gerencia o estado do monitoramento de exposição UV
 class ExposureProvider extends ChangeNotifier {
-  // Configurações
+  // Configurações do usuário
   late double _spf;
   late String _skinType;
-  
-  // Modelo
   late ExposureModel _model;
   
-  // Estado de monitoramento
+  // Estado do monitoramento
   bool _isMonitoring = false;
   int _secondsElapsed = 0;
   double _currentUVIndex = 1.0;
   Timer? _timer;
   
-  // Estado de conexão
+  // Estado da conexão com o dispositivo
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   String? _connectionError;
-  DateTime? _disconnectedSince; // Quando perdeu conexão
-  bool _stoppedDueToDisconnection = false; // Se parou por falta de conexão
+  DateTime? _disconnectedSince;
+  bool _stoppedDueToDisconnection = false;
   
-  // Alarme
+  // Alarme sonoro
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _alarmPlayed = false;
+  bool _alarmActive = false;
   bool _warningNotificationSent = false;
+  bool _cacheNotificationSent = false;
   
-  // Sessão atual
+  // Controle de requisições HTTP
+  bool _isFetching = false;
+  
+  // Modo Demo (dados UV simulados, sem HTTP)
+  bool _isDemoMode = false;
+  
+  // Detecção de gap (suspensão do sistema)
+  DateTime? _lastTickTime;
+  bool _gapDetected = false;
+  int _lastGapDurationSeconds = 0;
+  int _lastGapCompensatedSeconds = 0;
+  bool _gapExceededMax = false;
+  bool _gapDismissed = false;
+  double _gapUVIndex = 0.0;
+  
+  // Dados da sessão atual
   String? _currentSessionId;
   DateTime? _sessionStartTime;
   List<UVReading> _sessionReadings = [];
   double _maxUVIndex = 0.0;
 
-  // Getters
+  // Getters públicos
   bool get isMonitoring => _isMonitoring;
   int get secondsElapsed => _secondsElapsed;
   double get currentUVIndex => _currentUVIndex;
@@ -56,21 +74,42 @@ class ExposureProvider extends ChangeNotifier {
   ConnectionStatus get connectionStatus => _connectionStatus;
   String? get connectionError => _connectionError;
   bool get alarmPlayed => _alarmPlayed;
+  bool get alarmActive => _alarmActive;
   bool get stoppedDueToDisconnection => _stoppedDueToDisconnection;
+  bool get isDemoMode => _isDemoMode;
   
-  /// Retorna se deve mostrar o indicador de uso de cache (após 3s de desconexão)
+  bool get gapDetected => _gapDetected;
+  int get lastGapDurationSeconds => _lastGapDurationSeconds;
+  int get lastGapCompensatedSeconds => _lastGapCompensatedSeconds;
+  bool get gapExceededMax => _gapExceededMax;
+  bool get gapDismissed => _gapDismissed;
+  double get gapUVIndex => _gapUVIndex;
+  
+  /// Sinaliza que o usuário viu e dispensou o aviso de gap
+  void dismissGapWarning() {
+    _gapDismissed = true;
+    notifyListeners();
+  }
+  
+  /// Ativa ou desativa o modo Demo (deve ser chamado antes de startMonitoring)
+  void setDemoMode(bool value) {
+    _isDemoMode = value;
+    notifyListeners();
+  }
+  
+  /// Retorna se deve mostrar o indicador de cache
   bool get shouldShowCacheIndicator {
     if (_disconnectedSince == null) return false;
     return secondsDisconnected >= AppConstants.cacheIndicatorThreshold.inSeconds;
   }
   
-  /// Retorna há quanto tempo está desconectado (em segundos)
+  /// Retorna há quantos segundos está desconectado
   int get secondsDisconnected {
     if (_disconnectedSince == null) return 0;
     return DateTime.now().difference(_disconnectedSince!).inSeconds;
   }
   
-  /// Retorna o tempo restante de cache antes de parar (em segundos)
+  /// Retorna o tempo restante de cache em segundos
   int get cacheTimeRemaining {
     if (_disconnectedSince == null) return AppConstants.cacheExpiration.inSeconds;
     final elapsed = DateTime.now().difference(_disconnectedSince!).inSeconds;
@@ -100,18 +139,27 @@ class ExposureProvider extends ChangeNotifier {
 
   void _resetState() {
     _secondsElapsed = 0;
-    _currentUVIndex = 1.0;
+    _currentUVIndex = AppConstants.defaultUVIndex;
     _alarmPlayed = false;
+    _alarmActive = false;
     _warningNotificationSent = false;
+    _cacheNotificationSent = false;
     _connectionError = null;
     _disconnectedSince = null;
     _stoppedDueToDisconnection = false;
     _sessionReadings = [];
     _maxUVIndex = 0.0;
+    _lastTickTime = null;
+    _gapDetected = false;
+    _lastGapDurationSeconds = 0;
+    _lastGapCompensatedSeconds = 0;
+    _gapExceededMax = false;
+    _gapDismissed = false;
+    _gapUVIndex = 0.0;
     _model.reset();
   }
 
-  /// Inicia o monitoramento de exposição
+  /// Inicia o monitoramento de exposição UV
   Future<void> startMonitoring() async {
     if (_isMonitoring) return;
 
@@ -120,10 +168,13 @@ class ExposureProvider extends ChangeNotifier {
     _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
     _sessionStartTime = DateTime.now();
     
-    // Verifica conexão inicial
     await _checkConnection();
     
-    // Inicia o timer
+    // Inicia o Foreground Service (Android) para manter o app vivo
+    await ForegroundService.start();
+    
+    // Timer principal (1 segundo)
+    _lastTickTime = DateTime.now();
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (_) => _tick(),
@@ -132,7 +183,7 @@ class ExposureProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Para o monitoramento e salva a sessão
+  /// Para o monitoramento e salva a sessão no histórico
   Future<void> stopMonitoring() async {
     if (!_isMonitoring) return;
 
@@ -140,7 +191,15 @@ class ExposureProvider extends ChangeNotifier {
     _timer = null;
     _isMonitoring = false;
 
-    // Salva a sessão no histórico
+    // Para o alarme se estiver tocando
+    if (_alarmActive) {
+      await _audioPlayer.stop();
+      await _audioPlayer.setReleaseMode(ReleaseMode.release);
+      _alarmActive = false;
+    }
+
+    // Para o Foreground Service
+    await ForegroundService.stop();
     await _saveSession();
     
     notifyListeners();
@@ -165,94 +224,170 @@ class ExposureProvider extends ChangeNotifier {
   }
 
   Future<void> _tick() async {
-    // Incrementa tempo
-    _secondsElapsed++;
+    final now = DateTime.now();
     
-    // Acumula exposição (baseado em 1 segundo)
+    // Compensação de gap (suspensão do sistema)
+    if (_lastTickTime != null) {
+      final elapsedSinceLastTick = now.difference(_lastTickTime!).inSeconds;
+      if (elapsedSinceLastTick > AppConstants.gapDetectionThresholdSeconds) {
+        final missedSeconds = elapsedSinceLastTick - 1;
+        await _compensateGap(missedSeconds);
+      }
+    }
+    _lastTickTime = now;
+    
+    // Acumula exposição UV
+    _secondsElapsed++;
     _model.accumulateExposure(_currentUVIndex, 1);
     
-    // Busca dados UV periodicamente (conforme intervalo configurado)
+    // Busca dados UV do sensor periodicamente
     if (_secondsElapsed % AppConstants.dataFetchInterval.inSeconds == 0) {
       await _fetchUVData();
       
-      // Registra leitura e atualiza máximo apenas quando busca novos dados
+      // Registra leitura na sessão e atualiza o UV máximo
       _sessionReadings.add(UVReading(
         uvIndex: _currentUVIndex,
         timestamp: DateTime.now(),
       ));
-      
       if (_currentUVIndex > _maxUVIndex) {
         _maxUVIndex = _currentUVIndex;
       }
     }
     
-    // Verifica limites
     await _checkExposureLimits();
     
-    // Salva progresso periodicamente
-    if (_secondsElapsed % 30 == 0) {
+    // Salva progresso periodicamente (a cada 30 segundos)
+    if (_secondsElapsed % AppConstants.saveProgressInterval == 0) {
       await _saveProgress();
     }
+    
+    // Atualiza notificação do Foreground Service
+    await ForegroundService.updateProgress(
+      _model.accumulatedExposurePercent,
+      formatTime(_secondsElapsed),
+    );
     
     notifyListeners();
   }
 
+  /// Compensa exposição perdida durante suspensão do sistema
+  Future<void> _compensateGap(int missedSeconds) async {
+    final maxGap = AppConstants.maxGapSimulationSeconds;
+    final compensatedSeconds = missedSeconds.clamp(0, maxGap);
+    
+    _model.accumulateExposure(_currentUVIndex, compensatedSeconds);
+    _secondsElapsed += compensatedSeconds;
+    
+    // Registra estado do gap para a UI
+    _gapDetected = true;
+    _gapDismissed = false;
+    _lastGapDurationSeconds = missedSeconds;
+    _lastGapCompensatedSeconds = compensatedSeconds;
+    _gapExceededMax = missedSeconds > maxGap;
+    _gapUVIndex = _currentUVIndex;
+    
+    debugPrint(
+      'Gap detectado: ${missedSeconds}s perdidos, '
+      '${compensatedSeconds}s compensados (UV: ${_currentUVIndex.toStringAsFixed(1)})',
+    );
+    
+    // Notificação de gap
+    try {
+      await NotificationService.showGapWarning(
+        gapSeconds: missedSeconds,
+        compensatedSeconds: compensatedSeconds,
+        uvIndex: _currentUVIndex,
+      );
+    } catch (e) {
+      debugPrint('Erro ao exibir notificação de gap: $e');
+    }
+  }
+
   Future<void> _fetchUVData() async {
+    // Modo Demo: UV simulado
+    if (_isDemoMode) {
+      _connectionStatus = ConnectionStatus.connected;
+      _connectionError = null;
+      _disconnectedSince = null;
+      _currentUVIndex = _generateSimulatedUV();
+      return;
+    }
+    
+    // Evita chamadas HTTP concorrentes
+    if (_isFetching) return;
+    _isFetching = true;
+    
     try {
       _connectionStatus = ConnectionStatus.connecting;
       
       final data = await UVDataService.fetchUVData();
       
-      _currentUVIndex = data.uvIndex > 0 ? data.uvIndex : 1.0;
+      _currentUVIndex = data.uvIndex > 0 ? data.uvIndex : AppConstants.defaultUVIndex;
       
       if (data.isFromCache) {
-        // Marca quando começou a usar cache (se ainda não marcou)
         _disconnectedSince ??= DateTime.now();
         
-        // Só mostra status de cache após o threshold (3s)
+        // Mostra cache após threshold
         if (shouldShowCacheIndicator) {
           _connectionStatus = ConnectionStatus.usingCache;
+          // Notifica uso de cache (uma vez)
+          if (!_cacheNotificationSent) {
+            _cacheNotificationSent = true;
+            try {
+              await NotificationService.showCacheWarning();
+            } catch (e) {
+              debugPrint('Erro ao exibir notificação de cache: $e');
+            }
+          }
         } else {
-          _connectionStatus = ConnectionStatus.connected; // Mantém como conectado durante o threshold
+          _connectionStatus = ConnectionStatus.connected;
         }
         
-        // Verifica se o tempo de cache expirou
+        // Verifica expiração do cache
         if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
           await _stopDueToDisconnection();
           return;
         }
       } else {
         _connectionStatus = ConnectionStatus.connected;
-        _disconnectedSince = null; // Reconectou, reseta o contador
+        _disconnectedSince = null;
       }
       _connectionError = null;
       
       await StorageService.cacheUVData(_currentUVIndex);
       
     } on UVDataException catch (e) {
-      // Marca quando começou a desconexão
       _disconnectedSince ??= DateTime.now();
       
-      // Só mostra status de desconectado/cache após o threshold (3s)
+      // Mostra desconectado após threshold
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
         _connectionError = e.message;
       } else {
-        _connectionStatus = ConnectionStatus.connected; // Mantém como conectado durante o threshold
+        _connectionStatus = ConnectionStatus.connected;
       }
       
-      // Verifica se já passou o tempo máximo sem conexão
+      // Verifica expiração do cache
       if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
         await _stopDueToDisconnection();
         return;
       }
       
-      // Tenta usar cache local
+      // Fallback: cache local
       final cached = await StorageService.getCachedUVData();
       if (cached != null) {
         _currentUVIndex = cached['uvIndex'] as double;
         if (shouldShowCacheIndicator) {
           _connectionStatus = ConnectionStatus.usingCache;
+          // Notifica o usuário sobre uso de cache (apenas uma vez)
+          if (!_cacheNotificationSent) {
+            _cacheNotificationSent = true;
+            try {
+              await NotificationService.showCacheWarning();
+            } catch (e) {
+              debugPrint('Erro ao exibir notificação de cache: $e');
+            }
+          }
         }
       }
     } catch (e) {
@@ -260,24 +395,49 @@ class ExposureProvider extends ChangeNotifier {
       
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
-        _connectionError = 'Unexpected error: $e';
+        _connectionError = '${AppStrings.unexpectedError}: $e';
       }
       
       if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
         await _stopDueToDisconnection();
         return;
       }
+    } finally {
+      _isFetching = false;
     }
   }
   
-  /// Para o monitoramento devido à perda de conexão prolongada
+  /// Para o monitoramento por perda prolongada de conexão
   Future<void> _stopDueToDisconnection() async {
     _stoppedDueToDisconnection = true;
-    _connectionError = 'Monitoring stopped: No connection for ${AppConstants.cacheExpiration.inMinutes} minutes';
+    _connectionError = AppStrings.monitoringStoppedNoConnection.replaceAll(
+        '{minutes}', '${AppConstants.cacheExpiration.inMinutes}');
+    
+    // Notifica parada por desconexão
+    try {
+      await NotificationService.showMonitoringStopped();
+    } catch (e) {
+      debugPrint('Erro ao exibir notificação de parada: $e');
+    }
+    
     await stopMonitoring();
   }
 
+  /// Gera índice UV simulado (senoidal, 1–11) para modo Demo
+  double _generateSimulatedUV() {
+    final t = _secondsElapsed * 2 * pi / AppConstants.demoUVCyclePeriod;
+    return AppConstants.demoUVCenter + AppConstants.demoUVAmplitude * sin(t);
+  }
+
+  /// Verifica conexão com o dispositivo IoT
   Future<void> _checkConnection() async {
+    // Modo Demo: conexão sempre ok
+    if (_isDemoMode) {
+      _connectionStatus = ConnectionStatus.connected;
+      notifyListeners();
+      return;
+    }
+    
     _connectionStatus = ConnectionStatus.connecting;
     notifyListeners();
     
@@ -287,52 +447,68 @@ class ExposureProvider extends ChangeNotifier {
         : ConnectionStatus.disconnected;
     
     if (!isReachable) {
-      _connectionError = 'Device not found. Make sure you\'re connected to the same WiFi network.';
+      _connectionError = AppStrings.deviceNotFound;
     }
     
     notifyListeners();
   }
 
-  /// Tenta reconectar ao dispositivo
-  Future<void> retryConnection() async {
+  /// Tenta reconectar ao dispositivo IoT. Retorna true se bem-sucedido.
+  Future<bool> retryConnection() async {
     UVDataService.resetUrlPreference();
     await _checkConnection();
+    
+    if (_connectionStatus == ConnectionStatus.connected) {
+      _cacheNotificationSent = false;
+      await NotificationService.cancel(AppConstants.notificationCacheId);
+    }
+    
+    return _connectionStatus == ConnectionStatus.connected;
   }
 
   Future<void> _checkExposureLimits() async {
-    // Notificação de aviso (75%)
+    // Aviso ao atingir 75%
     if (_model.isWarning && !_warningNotificationSent) {
       _warningNotificationSent = true;
       try {
         await NotificationService.showExposureWarning(_model.accumulatedExposurePercent);
       } catch (e) {
-        debugPrint('Error showing warning notification: $e');
+        debugPrint('Erro ao exibir notificação de aviso: $e');
       }
     }
     
-    // Alarme crítico (100%)
+    // Alarme crítico ao atingir 100%
     if (_model.isCritical && !_alarmPlayed) {
       _alarmPlayed = true;
-      await _playAlarm();
+      final soundEnabled = await StorageService.isSoundAlarmEnabled();
+      if (soundEnabled) {
+        await _playAlarm();
+      }
       try {
         await NotificationService.showExposureCritical();
       } catch (e) {
-        debugPrint('Error showing critical notification: $e');
+        debugPrint('Erro ao exibir notificação crítica: $e');
       }
     }
   }
 
   Future<void> _playAlarm() async {
     try {
-      await _audioPlayer.play(AssetSource('audio/alarm.mp3'));
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.play(AssetSource(AppConstants.alarmAssetPath));
+      _alarmActive = true;
+      notifyListeners();
     } catch (e) {
-      debugPrint('Error playing alarm: $e');
+      debugPrint('Erro ao reproduzir alarme: $e');
     }
   }
 
-  /// Para o alarme
+  /// Para o alarme sonoro
   Future<void> stopAlarm() async {
     await _audioPlayer.stop();
+    await _audioPlayer.setReleaseMode(ReleaseMode.release);
+    _alarmActive = false;
+    notifyListeners();
   }
 
   Future<void> _saveProgress() async {
@@ -362,7 +538,7 @@ class ExposureProvider extends ChangeNotifier {
     await StorageService.clearLastSession();
   }
 
-  /// Restaura uma sessão anterior
+  /// Restaura uma sessão anterior e retoma o monitoramento
   Future<bool> restoreLastSession() async {
     final lastSession = await StorageService.getLastSession();
     if (lastSession == null) return false;
@@ -374,15 +550,29 @@ class ExposureProvider extends ChangeNotifier {
       _model.setAccumulatedExposure(lastSession['accumulatedExposure'] as double);
       _secondsElapsed = lastSession['secondsElapsed'] as int;
       
+      // Retoma monitoramento
+      _isMonitoring = true;
+      _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
+      _sessionStartTime = DateTime.now().subtract(Duration(seconds: _secondsElapsed));
+      
+      await _checkConnection();
+      await ForegroundService.start();
+      
+      _lastTickTime = DateTime.now();
+      _timer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => _tick(),
+      );
+      
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Error restoring session: $e');
+      debugPrint('Erro ao restaurar sessão: $e');
       return false;
     }
   }
 
-  /// Formata segundos para HH:MM:SS
+  /// Formata tempo em segundos para o formato HH:MM:SS
   String formatTime(int seconds) {
     final hours = (seconds ~/ 3600).toString().padLeft(2, '0');
     final minutes = ((seconds % 3600) ~/ 60).toString().padLeft(2, '0');
@@ -394,6 +584,7 @@ class ExposureProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     _audioPlayer.dispose();
+    ForegroundService.stop();
     super.dispose();
   }
 }

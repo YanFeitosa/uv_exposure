@@ -1,8 +1,11 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/exposure_provider.dart';
+import '../../core/services/foreground_service.dart';
 import '../../shared/widgets/info_box.dart';
 import '../../shared/widgets/connection_status_badge.dart';
 
@@ -14,14 +17,19 @@ class MonitorScreen extends StatefulWidget {
 }
 
 class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserver {
+  bool _gapDialogShown = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     
-    // Inicia o monitoramento
+    // Inicia monitoramento após construção do widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ExposureProvider>().startMonitoring();
+      final provider = context.read<ExposureProvider>();
+      if (!provider.isMonitoring) {
+        provider.startMonitoring();
+      }
     });
   }
 
@@ -36,9 +44,8 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
     final provider = context.read<ExposureProvider>();
     
     if (state == AppLifecycleState.paused) {
-      // App em background - continua monitorando
     } else if (state == AppLifecycleState.resumed) {
-      // App retomado
+      // Reconecta ao sensor ao retomar
       if (provider.isMonitoring) {
         provider.retryConnection();
       }
@@ -112,6 +119,18 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
         ),
         body: Consumer<ExposureProvider>(
           builder: (context, provider, child) {
+            // Exibe diálogo de gap
+            if (provider.gapDetected && !provider.gapDismissed && !_gapDialogShown) {
+              _gapDialogShown = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _showGapDialog(provider);
+              });
+            }
+            // Reseta flag para permitir futuro gap
+            if (provider.gapDismissed) {
+              _gapDialogShown = false;
+            }
+
             return LayoutBuilder(
               builder: (context, constraints) {
                 final screenWidth = constraints.maxWidth;
@@ -125,7 +144,34 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                       children: [
                         SizedBox(height: screenHeight * 0.02),
                         
-                        // Connection Error Banner
+                        // Banner Modo Demo
+                        if (provider.isDemoMode)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orange, width: 2),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.science, color: Colors.orange, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  AppStrings.demoBannerText,
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        
+                        // Banner de cache
                         if (provider.connectionStatus == ConnectionStatus.usingCache)
                           _buildCacheWarningBanner(provider),
                         
@@ -133,11 +179,11 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                             provider.connectionStatus == ConnectionStatus.disconnected)
                           _buildConnectionErrorBanner(provider),
                         
-                        // Stopped due to disconnection alert
+                        // Alerta de monitoramento parado
                         if (provider.stoppedDueToDisconnection)
                           _buildStoppedAlert(provider),
                         
-                        // Info Boxes
+                        // Caixas de informação
                         InfoBox(
                           title: AppStrings.elapsedTime,
                           info: provider.formatTime(provider.secondsElapsed),
@@ -177,18 +223,43 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                         
                         SizedBox(height: screenHeight * 0.02),
                         
-                        // Alarm control button
-                        if (provider.alarmPlayed)
+                        // Botão parar alarme
+                        if (provider.alarmActive)
                           ElevatedButton.icon(
                             onPressed: () => provider.stopAlarm(),
                             icon: const Icon(Icons.volume_off),
-                            label: const Text('Stop Alarm'),
+                            label: const Text(AppStrings.stopAlarm),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
                             ),
                           ),
                           
+                        SizedBox(height: screenHeight * 0.02),
+
+                        // Botão finalizar monitoramento
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              if (await _onWillPop()) {
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              }
+                            },
+                            icon: const Icon(Icons.stop),
+                            label: const Text(AppStrings.endMonitoring),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                              padding: EdgeInsets.symmetric(
+                                vertical: screenHeight * 0.015,
+                              ),
+                            ),
+                          ),
+                        ),
+
                         SizedBox(height: screenHeight * 0.02),
                       ],
                     ),
@@ -231,7 +302,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
           Expanded(
             child: Text(
               provider.connectionStatus == ConnectionStatus.usingCache
-                  ? 'Using cached data. Device not reachable.'
+                  ? AppStrings.cachedDataMessage
                   : provider.connectionError!,
               style: TextStyle(
                 color: provider.connectionStatus == ConnectionStatus.usingCache
@@ -257,14 +328,14 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
   }
 
   String _getUVIndexDescription(double uvIndex) {
-    if (uvIndex <= 2) return 'Low';
-    if (uvIndex <= 5) return 'Moderate';
-    if (uvIndex <= 7) return 'High';
-    if (uvIndex <= 10) return 'Very High';
-    return 'Extreme';
+    if (uvIndex <= 2) return AppStrings.uvLow;
+    if (uvIndex <= 5) return AppStrings.uvModerate;
+    if (uvIndex <= 7) return AppStrings.uvHigh;
+    if (uvIndex <= 10) return AppStrings.uvVeryHigh;
+    return AppStrings.uvExtreme;
   }
 
-  /// Banner de aviso quando usando dados em cache
+  /// Banner de aviso quando usando dados do cache
   Widget _buildCacheWarningBanner(ExposureProvider provider) {
     final remainingMinutes = provider.cacheTimeRemaining ~/ 60;
     final remainingSeconds = provider.cacheTimeRemaining % 60;
@@ -288,7 +359,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Conexão perdida - Usando cache',
+                      AppStrings.connectionLostUsingCache,
                       style: TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,
@@ -297,7 +368,9 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'O monitoramento será pausado em ${remainingMinutes}m ${remainingSeconds}s',
+                      AppStrings.monitoringWillPauseIn
+                          .replaceAll('{minutes}', '$remainingMinutes')
+                          .replaceAll('{seconds}', '$remainingSeconds'),
                       style: TextStyle(
                         color: Colors.orange.shade800,
                         fontSize: 12,
@@ -317,7 +390,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: provider.cacheTimeRemaining / 300, // 5 minutos = 300s
+              value: provider.cacheTimeRemaining / AppConstants.cacheExpiration.inSeconds,
               backgroundColor: Colors.orange.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade600),
               minHeight: 6,
@@ -328,7 +401,78 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
     );
   }
 
-  /// Alerta quando o monitoramento foi parado por falta de conexão
+  /// Diálogo de compensação de gap (suspensão do sistema)
+  void _showGapDialog(ExposureProvider provider) {
+    final minutes = provider.lastGapDurationSeconds ~/ 60;
+    final seconds = provider.lastGapDurationSeconds % 60;
+    final durationText = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+
+    final compMinutes = provider.lastGapCompensatedSeconds ~/ 60;
+    final compSeconds = provider.lastGapCompensatedSeconds % 60;
+    final compText = compMinutes > 0 ? '${compMinutes}m ${compSeconds}s' : '${compSeconds}s';
+
+    final body = provider.gapExceededMax
+        ? AppStrings.gapDialogBodyExceeded
+            .replaceAll('{duration}', durationText)
+            .replaceAll('{compensated}', compText)
+            .replaceAll('{maxMinutes}', '${AppConstants.maxGapSimulationSeconds ~/ 60}')
+            .replaceAll('{uvIndex}', provider.gapUVIndex.toStringAsFixed(1))
+        : AppStrings.gapDialogBody
+            .replaceAll('{duration}', durationText)
+            .replaceAll('{compensated}', compText)
+            .replaceAll('{uvIndex}', provider.gapUVIndex.toStringAsFixed(1));
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          icon: Icon(
+            provider.gapExceededMax ? Icons.warning_amber : Icons.info_outline,
+            color: provider.gapExceededMax ? Colors.orange : Colors.blue,
+            size: 36,
+          ),
+          title: Text(AppStrings.gapDialogTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(body),
+              if (Platform.isAndroid) ...[
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.gapDialogBatteryHint,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade700,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (Platform.isAndroid)
+              TextButton.icon(
+                onPressed: () {
+                  ForegroundService.openBatteryOptimizationSettings();
+                },
+                icon: const Icon(Icons.battery_saver, size: 18),
+                label: Text(AppStrings.gapOpenBatterySettings),
+              ),
+            TextButton(
+              onPressed: () {
+                provider.dismissGapWarning();
+                Navigator.of(ctx).pop();
+              },
+              child: Text(AppStrings.gapDismiss),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Alerta de monitoramento parado por desconexão
   Widget _buildStoppedAlert(ExposureProvider provider) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -346,7 +490,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
               Icon(Icons.error_outline, color: Colors.red, size: 32),
               SizedBox(width: 8),
               Text(
-                'Monitoramento Pausado',
+                AppStrings.monitoringPaused,
                 style: TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -357,8 +501,8 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 8),
           Text(
-            'Sem conexão com o dispositivo por mais de 5 minutos.\n'
-            'Reconecte-se à rede WiFi do SunSense e tente novamente.',
+            AppStrings.noConnectionRetryMessage.replaceAll(
+                '{minutes}', '${AppConstants.cacheExpiration.inMinutes}'),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.red.shade800,
@@ -367,14 +511,15 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
           ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
-            onPressed: () {
-              provider.retryConnection();
-              if (provider.connectionStatus == ConnectionStatus.connected) {
+            onPressed: () async {
+              final reconnected = await provider.retryConnection();
+              if (!context.mounted) return;
+              if (reconnected) {
                 provider.startMonitoring();
               }
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('Tentar Reconectar'),
+            label: const Text(AppStrings.retryReconnect),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,

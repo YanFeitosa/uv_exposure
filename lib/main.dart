@@ -9,25 +9,21 @@ import 'core/services/storage_service.dart';
 import 'core/services/notification_service.dart';
 import 'features/home/home_screen.dart';
 import 'features/history/history_screen.dart';
+import 'features/settings/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializa serviços com tratamento de erros
+  // Inicializa serviços essenciais
   try {
     await StorageService.init();
-  } catch (e) {
-    debugPrint('Erro ao inicializar StorageService: $e');
-  }
+  } catch (e) {}
   
-  // Inicializa o serviço de notificações (apenas inicializa, não pede permissão ainda)
-  // A permissão será solicitada na HomeScreen de forma amigável
+  // Inicializa notificações (permissão será pedida na HomeScreen)
   if (!kIsWeb) {
     try {
       await NotificationService.init();
-    } catch (e) {
-      debugPrint('Erro ao inicializar NotificationService: $e');
-    }
+    } catch (e) {}
   }
   
   runApp(const MyApp());
@@ -51,6 +47,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => const HomeScreen(),
           '/history': (context) => const HistoryScreen(),
+          '/settings': (context) => const SettingsScreen(),
         },
       ),
     );
