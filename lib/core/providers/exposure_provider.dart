@@ -317,9 +317,7 @@ class ExposureProvider extends ChangeNotifier {
     if (_isFetching) return;
     _isFetching = true;
     
-    try {
-      _connectionStatus = ConnectionStatus.connecting;
-      
+    try {      
       final data = await UVDataService.fetchUVData();
       
       _currentUVIndex = data.uvIndex > 0 ? data.uvIndex : AppConstants.defaultUVIndex;

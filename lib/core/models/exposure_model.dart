@@ -103,8 +103,6 @@ class ExposureModel {
   double _accumulatedExposurePercent = 0.0;
 
   /// Cria um novo modelo de exposição.
-  /// 
-  /// skinType - Fototipo de pele (escala Fitzpatrick I-VI)
   ExposureModel({required double spf, required String skinType})
       : _spf = spf <= 0 ? 1.0 : spf,
         _tep = _calculateTEP(skinType);
@@ -114,7 +112,7 @@ class ExposureModel {
     return AppConstants.tepBySkinType[skinType] ?? AppConstants.defaultTEP;
   }
 
-  /// Retorna o TEP (Tempo de Eritema Pele) em minutos
+  /// Retorna o TEP em minutos
   double get tep => _tep;
 
   /// Retorna o SPF atual
@@ -133,8 +131,8 @@ class ExposureModel {
   /// Retorna o tempo em segundos: (SPF × TEP) / UV
   int calculateInitialSafeExposureTime(double uvIndex) {
     if (uvIndex <= 0) uvIndex = 1;
-    final safeTimeMinutes = (_spf * _tep) / uvIndex;
-    return _toSeconds(0, safeTimeMinutes.toInt(), 0);
+    final safeTimeSeconds = ((_spf * _tep) / uvIndex) * 60;
+    return safeTimeSeconds.toInt();
   }
 
   /// Acumula a exposição UV proporcionalmente ao índice UV e tempo decorrido
@@ -143,12 +141,10 @@ class ExposureModel {
   /// timeSeconds - Intervalo de tempo em segundos (normalmente 1)
   void accumulateExposure(double uvIndex, int timeSeconds) {
     if (uvIndex <= 0) return;
-    _accumulatedExposurePercent += (uvIndex * timeSeconds) / (_tep * _spf * 60);
+    _accumulatedExposurePercent += ((uvIndex * timeSeconds) / (_tep * _spf * 60)) * 100;
   }
 
   /// Calcula o tempo total de exposição segura estimado
-  /// 
-  /// secondsElapsed - Segundos já decorridos na sessão
   /// Retorna estimativa do tempo total seguro em segundos
   int calculateSafeExposureTime(int secondsElapsed) {
     if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold) return 0;

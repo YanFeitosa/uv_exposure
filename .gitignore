@@ -44,3 +44,5 @@ app.*.map.json
 
 # Guia do relatório técnico (uso interno)
 RELATORIO_TECNICO_GUIA.md
+ANALISE_TECNICA_CODIGO.md
+TCC.md
