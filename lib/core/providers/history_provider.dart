@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../constants/app_strings.dart';
 import '../models/exposure_model.dart';
+import '../services/logger_service.dart';
 import '../services/storage_service.dart';
 
 /// Provider para gerenciar o histórico de sessões de exposição UV
@@ -26,7 +27,7 @@ class HistoryProvider extends ChangeNotifier {
       _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     } catch (e) {
       _error = '${AppStrings.failedToLoadHistory}: $e';
-      debugPrint(_error);
+      AppLogger.error(_error!, tag: 'HistoryProvider');
     } finally {
       _isLoading = false;
       notifyListeners();

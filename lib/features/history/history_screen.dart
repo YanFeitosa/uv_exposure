@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/models/exposure_model.dart';
 import '../../core/providers/history_provider.dart';
+import '../../core/services/export_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -26,12 +27,69 @@ class _HistoryScreenState extends State<HistoryScreen> {
     context.read<HistoryProvider>().loadSessionsLastDays(_selectedPeriod);
   }
 
+  Future<void> _exportData(String format) async {
+    final sessions = context.read<HistoryProvider>().sessions;
+    if (sessions.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.exportNoData)),
+      );
+      return;
+    }
+
+    try {
+      final path = format == 'csv'
+          ? await ExportService.exportToCSV(sessions)
+          : await ExportService.exportToJSON(sessions);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${AppStrings.exportSuccess}\n${AppStrings.exportFileSaved} $path'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppStrings.exportError}: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.exposureHistory),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.file_download),
+            tooltip: AppStrings.exportData,
+            onSelected: (format) => _exportData(format),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'csv',
+                child: Row(
+                  children: [
+                    Icon(Icons.table_chart, size: 20),
+                    SizedBox(width: 8),
+                    Text(AppStrings.exportCSV),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'json',
+                child: Row(
+                  children: [
+                    Icon(Icons.data_object, size: 20),
+                    SizedBox(width: 8),
+                    Text(AppStrings.exportJSON),
+                  ],
+                ),
+              ),
+            ],
+          ),
           PopupMenuButton<int>(
             icon: const Icon(Icons.filter_list),
             onSelected: (days) {

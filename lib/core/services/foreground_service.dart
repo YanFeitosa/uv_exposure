@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
+import 'logger_service.dart';
 
 /// Wrapper para o Android Foreground Service.
 /// Mantém o processo do app vivo em segundo plano.
@@ -50,7 +51,7 @@ class ForegroundService {
     );
 
     _isInitialized = true;
-    debugPrint('ForegroundService: inicializado');
+    AppLogger.info('Inicializado', tag: 'ForegroundService');
   }
 
   /// Inicia o Foreground Service com notificação persistente
@@ -69,9 +70,9 @@ class ForegroundService {
         callback: _startCallback,
       );
 
-      debugPrint('ForegroundService: start result = $result');
+      AppLogger.info('start result = $result', tag: 'ForegroundService');
     } catch (e) {
-      debugPrint('ForegroundService: erro ao iniciar serviço: $e');
+      AppLogger.error('Erro ao iniciar serviço', tag: 'ForegroundService', error: e);
     }
   }
 
@@ -93,7 +94,7 @@ class ForegroundService {
       );
     } catch (e) {
       // Silencia erros de atualização
-      debugPrint('ForegroundService: erro ao atualizar notificação: $e');;
+      AppLogger.warning('Erro ao atualizar notificação', tag: 'ForegroundService', error: e);
     }
   }
 
@@ -106,9 +107,9 @@ class ForegroundService {
       if (!isRunning) return;
 
       await FlutterForegroundTask.stopService();
-      debugPrint('ForegroundService: serviço parado');
+      AppLogger.info('Serviço parado', tag: 'ForegroundService');
     } catch (e) {
-      debugPrint('ForegroundService: erro ao parar serviço: $e');
+      AppLogger.error('Erro ao parar serviço', tag: 'ForegroundService', error: e);
     }
   }
 
@@ -128,7 +129,7 @@ class ForegroundService {
     try {
       return await FlutterForegroundTask.requestIgnoreBatteryOptimization();
     } catch (e) {
-      debugPrint('ForegroundService: erro ao solicitar economia de bateria: $e');
+      AppLogger.error('Erro ao solicitar economia de bateria', tag: 'ForegroundService', error: e);
       return false;
     }
   }
@@ -139,7 +140,7 @@ class ForegroundService {
     try {
       return await FlutterForegroundTask.openIgnoreBatteryOptimizationSettings();
     } catch (e) {
-      debugPrint('ForegroundService: erro ao abrir configurações: $e');
+      AppLogger.error('Erro ao abrir configurações', tag: 'ForegroundService', error: e);
       return false;
     }
   }
@@ -155,7 +156,7 @@ void _startCallback() {
 class _NoOpTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    debugPrint('ForegroundService TaskHandler: onStart');
+    AppLogger.info('TaskHandler: onStart', tag: 'ForegroundService');
   }
 
   @override
@@ -163,6 +164,6 @@ class _NoOpTaskHandler extends TaskHandler {
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    debugPrint('ForegroundService TaskHandler: onDestroy (isTimeout: $isTimeout)');
+    AppLogger.info('TaskHandler: onDestroy (isTimeout: $isTimeout)', tag: 'ForegroundService');
   }
 }

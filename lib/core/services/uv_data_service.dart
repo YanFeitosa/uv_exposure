@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
+import 'logger_service.dart';
 
 /// Dados UV recebidos do dispositivo IoT
 class UVData {
@@ -19,9 +20,19 @@ class UVData {
 
   factory UVData.fromJson(Map<String, dynamic> json) {
     // Aceita 'uv_index', 'uvIndex' e 'indiceUV'
-    final uvValue = json['uv_index'] ?? json['uvIndex'] ?? json['indiceUV'] ?? 0;
+    final uvValue = json['uv_index'] ?? json['uvIndex'] ?? json['indiceUV'];
+    if (uvValue == null) {
+      throw const UVDataException(
+        'JSON não contém chave de índice UV válida (uv_index, uvIndex ou indiceUV)',
+      );
+    }
+    if (uvValue is! num) {
+      throw UVDataException(
+        'Valor UV inválido: esperado numérico, recebido ${uvValue.runtimeType}',
+      );
+    }
     return UVData(
-      uvIndex: (uvValue is num) ? uvValue.toDouble() : 0.0,
+      uvIndex: uvValue.toDouble(),
       timestamp: DateTime.now(),
     );
   }
@@ -63,6 +74,20 @@ class UVDataService {
   static DateTime? _cacheTime;
   static bool _useFallbackIp = false;
 
+  /// Cliente HTTP injetável para permitir testes com mock.
+  /// Em produção usa o cliente padrão; em testes, pode ser substituído.
+  static http.Client _httpClient = http.Client();
+
+  /// Substitui o cliente HTTP (usado em testes)
+  static void setHttpClient(http.Client client) {
+    _httpClient = client;
+  }
+
+  /// Restaura o cliente HTTP padrão
+  static void restoreHttpClient() {
+    _httpClient = http.Client();
+  }
+
   /// Busca dados UV do dispositivo (mDNS com fallback para IP fixo)
   static Future<UVData> fetchUVData() async {
     final urls = _useFallbackIp
@@ -73,7 +98,7 @@ class UVDataService {
 
     for (final url in urls) {
       try {
-        final response = await http
+        final response = await _httpClient
             .get(url, headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -97,7 +122,7 @@ class UVDataService {
           );
         }
       } catch (e) {
-        debugPrint('Falha ao buscar de $url: $e');
+        AppLogger.warning('Falha ao buscar de $url', tag: 'UVDataService', error: e);
         lastError = e is Exception ? e : Exception(e.toString());
       }
     }
@@ -147,34 +172,36 @@ class UVDataService {
 
     for (final url in urls) {
       try {
-        final response = await http
+        final response = await _httpClient
             .get(url)
             .timeout(AppConstants.connectionCheckTimeout);
 
         if (response.statusCode == 200) {
           _useFallbackIp = url.toString().contains(AppConstants.deviceFallbackIp);
-          debugPrint('UVDataService: dispositivo acessível via $url');
+          AppLogger.info('Dispositivo acessível via $url', tag: 'UVDataService');
           return true;
         } else {
-          debugPrint(
-            'UVDataService: $url respondeu com status ${response.statusCode}',
+          AppLogger.warning(
+            '$url respondeu com status ${response.statusCode}',
+            tag: 'UVDataService',
           );
         }
       } on TimeoutException {
-        debugPrint(
-          'UVDataService: timeout ao verificar $url '
+        AppLogger.warning(
+          'Timeout ao verificar $url '
           '(${AppConstants.connectionCheckTimeout.inSeconds}s)',
+          tag: 'UVDataService',
         );
       } on http.ClientException catch (e) {
-        debugPrint('UVDataService: erro de cliente HTTP em $url: ${e.message}');
+        AppLogger.warning('Erro de cliente HTTP em $url: ${e.message}', tag: 'UVDataService');
       } on FormatException catch (e) {
-        debugPrint('UVDataService: URL malformada $url: ${e.message}');
+        AppLogger.warning('URL malformada $url: ${e.message}', tag: 'UVDataService');
       } catch (e) {
-        debugPrint('UVDataService: erro inesperado ao verificar $url: $e');
+        AppLogger.error('Erro inesperado ao verificar $url', tag: 'UVDataService', error: e);
       }
     }
 
-    debugPrint('UVDataService: dispositivo inacessível em todas as URLs');
+    AppLogger.warning('Dispositivo inacessível em todas as URLs', tag: 'UVDataService');
     return false;
   }
 
@@ -184,7 +211,8 @@ class UVDataService {
     _cacheTime = null;
   }
 
-  /// Reseta a preferência de URL (volta a tentar mDNS primeiro)  static void resetUrlPreference() {
+  /// Reseta a preferência de URL (volta a tentar mDNS primeiro)
+  static void resetUrlPreference() {
     _useFallbackIp = false;
   }
 }

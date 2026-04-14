@@ -161,6 +161,36 @@ class AppStrings {
   static const String gapDismiss = 'Entendi';
   static const String gapOpenBatterySettings = 'Config. Bateria';
 
+  // Exportação de dados
+  static const String exportData = 'Exportar Dados';
+  static const String exportCSV = 'Exportar CSV';
+  static const String exportJSON = 'Exportar JSON';
+  static const String exportSuccess = 'Dados exportados com sucesso';
+  static const String exportError = 'Erro ao exportar dados';
+  static const String exportNoData = 'Nenhum dado para exportar';
+  static const String exportFileSaved = 'Arquivo salvo em:';
+
+  // Tela Sobre
+  static const String about = 'Sobre';
+  static const String aboutTitle = 'Sobre o SunSense';
+  static const String aboutVersion = 'Versão';
+  static const String aboutDescription =
+      'O SunSense é uma ferramenta educacional e experimental para monitoramento '
+      'de exposição à radiação ultravioleta, desenvolvida como Trabalho de '
+      'Conclusão de Curso (TCC).';
+  static const String aboutDisclaimer =
+      'AVISO: Este aplicativo NÃO substitui orientação médica profissional. '
+      'Os cálculos de tempo seguro de exposição são estimativas baseadas em '
+      'modelos simplificados e não consideram todos os fatores individuais.\n\n'
+      'Consulte sempre um dermatologista para orientações sobre proteção solar.';
+  static const String aboutTechnology =
+      'Tecnologias: Flutter, ESP32, Sensor VEML6075';
+
+  // Popup de sessão (fototipo + FPS)
+  static const String sessionConfigTitle = 'Configurar Sessão';
+  static const String sessionConfigBody =
+      'Selecione o fototipo de pele e o fator de proteção solar para esta sessão:';
+
   // Foreground Service
   static const String foregroundNotificationTitle = 'SunSense — Monitorando';
   static const String foregroundNotificationText =

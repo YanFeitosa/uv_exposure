@@ -23,43 +23,39 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestNotificationPermission();
-      _checkSkinType();
       _checkPendingSession();
     });
   }
 
-  // Verifica se o fototipo de pele já foi definido
-  Future<void> _checkSkinType() async {
-    final skinType = await StorageService.getSkinType();
-    if (skinType == null || skinType.isEmpty) {
-      if (!mounted) return;
-      await _showSkinTypePopup();
-    }
-  }
-
-  // Popup para selecionar fototipo na primeira abertura
-  Future<void> _showSkinTypePopup() async {
+  // Popup para selecionar fototipo e SPF antes de iniciar monitoramento
+  Future<void> _showStartMonitoringPopup() async {
+    String? selectedSpf;
     String? selectedSkinType;
     final demoMode = await StorageService.getDemoMode();
     final skinTypes = demoMode
         ? AppStrings.skinTypes
         : AppStrings.skinTypes.where((s) => !s.contains('Demo')).toList();
 
+    // Tenta carregar o último fototipo usado como sugestão
+    final lastSkinType = await StorageService.getSkinType();
+    if (lastSkinType != null && skinTypes.contains(lastSkinType)) {
+      selectedSkinType = lastSkinType;
+    }
+
     if (!mounted) return;
 
     await showDialog(
       context: context,
-      barrierDismissible: false,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              icon: Icon(Icons.person, color: AppColors.secondary, size: 36),
-              title: const Text(AppStrings.skinTypePopupTitle),
+              icon: Icon(Icons.wb_sunny, color: AppColors.primary, size: 36),
+              title: const Text(AppStrings.sessionConfigTitle),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(AppStrings.skinTypePopupBody),
+                  const Text(AppStrings.sessionConfigBody),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
@@ -79,17 +75,49 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: AppStrings.spfLabel,
+                      prefixIcon: Icon(Icons.shield),
+                    ),
+                    value: selectedSpf,
+                    items: AppStrings.spfValues.map((String value) {
+                      final label = value == '0'
+                          ? AppStrings.noSunscreen
+                          : '${AppStrings.spfPrefix} $value';
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(label),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setDialogState(() {
+                        selectedSpf = newValue;
+                      });
+                    },
+                  ),
                 ],
               ),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text(AppStrings.cancel),
+                ),
                 ElevatedButton(
-                  onPressed: selectedSkinType != null
+                  onPressed: (selectedSpf != null && selectedSkinType != null)
                       ? () {
+                          // Salva o fototipo escolhido para sugerir na próxima sessão
                           StorageService.saveSkinType(selectedSkinType!);
                           Navigator.of(ctx).pop();
+                          _startMonitoring(
+                            spf: double.parse(selectedSpf!),
+                            skinType: selectedSkinType!,
+                            demoMode: demoMode,
+                          );
                         }
                       : null,
-                  child: const Text(AppStrings.save),
+                  child: const Text(AppStrings.start),
                 ),
               ],
             );
@@ -98,8 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-  // Verifica sessão pendente para restauração
   Future<void> _checkPendingSession() async {
     final lastSession = await StorageService.getLastSession();
     if (lastSession == null) return;
@@ -217,81 +243,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Popup para selecionar SPF antes de iniciar monitoramento
-  Future<void> _showStartMonitoringPopup() async {
-    String? selectedSpf;
-    final skinType = await StorageService.getSkinType();
-    final demoMode = await StorageService.getDemoMode();
-
-    if (skinType == null || skinType.isEmpty) {
-      await _showSkinTypePopup();
-      return;
-    }
-
-    if (!mounted) return;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              icon: Icon(Icons.wb_sunny, color: AppColors.primary, size: 36),
-              title: const Text(AppStrings.startMonitoringTitle),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(AppStrings.selectSpfMessage),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: AppStrings.spfLabel,
-                      prefixIcon: Icon(Icons.shield),
-                    ),
-                    value: selectedSpf,
-                    items: AppStrings.spfValues.map((String value) {
-                      final label = value == '0'
-                          ? AppStrings.noSunscreen
-                          : '${AppStrings.spfPrefix} $value';
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(label),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setDialogState(() {
-                        selectedSpf = newValue;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text(AppStrings.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: selectedSpf != null
-                      ? () {
-                          Navigator.of(ctx).pop();
-                          _startMonitoring(
-                            spf: double.parse(selectedSpf!),
-                            skinType: skinType,
-                            demoMode: demoMode,
-                          );
-                        }
-                      : null,
-                  child: const Text(AppStrings.start),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   void _startMonitoring({
     required double spf,
     required String skinType,
@@ -329,6 +280,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.pushNamed(context, '/history');
             },
             tooltip: AppStrings.exposureHistory,
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () {
+              Navigator.pushNamed(context, '/about');
+            },
+            tooltip: AppStrings.about,
           ),
         ],
       ),

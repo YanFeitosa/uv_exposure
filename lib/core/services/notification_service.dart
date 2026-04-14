@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
+import 'logger_service.dart';
 
 /// Serviço para gerenciar notificações locais
 class NotificationService {
@@ -44,7 +45,7 @@ class NotificationService {
       );
       
       if (initialized != true) {
-        debugPrint('NotificationService: falha na inicialização');
+        AppLogger.warning('Falha na inicialização', tag: 'NotificationService');
         return false;
       }
 
@@ -54,7 +55,7 @@ class NotificationService {
       _isInitialized = true;
       return true;
     } catch (e) {
-      debugPrint('NotificationService: erro na inicialização: $e');
+      AppLogger.error('Erro na inicialização', tag: 'NotificationService', error: e);
       return false;
     }
   }
@@ -76,7 +77,7 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    debugPrint('Notificação tocada: ${response.payload}');
+    AppLogger.debug('Notificação tocada: ${response.payload}', tag: 'NotificationService');
     // Pode ser usado para navegação ao tocar na notificação
   }
 
@@ -127,10 +128,10 @@ class NotificationService {
       }
       
       _permissionGranted = granted;
-      debugPrint('NotificationService: permissão ${granted ? "concedida" : "negada"}');
+      AppLogger.info('Permissão ${granted ? "concedida" : "negada"}', tag: 'NotificationService');
       return granted;
     } catch (e) {
-      debugPrint('NotificationService: erro ao solicitar permissão: $e');
+      AppLogger.error('Erro ao solicitar permissão', tag: 'NotificationService', error: e);
       return false;
     }
   }

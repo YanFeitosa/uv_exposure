@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
 import '../models/exposure_model.dart';
@@ -10,6 +11,12 @@ class StorageService {
   /// Inicializa o serviço de armazenamento local (SharedPreferences)
   static Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
+  }
+
+  /// Reseta a instância para permitir reinicialização em testes
+  @visibleForTesting
+  static void resetForTest() {
+    _prefs = null;
   }
 
   /// Garante que o SharedPreferences está inicializado

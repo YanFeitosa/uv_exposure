@@ -81,18 +81,42 @@ class ExposureSession {
     'readings': readings.map((r) => r.toJson()).toList(),
   };
 
-  factory ExposureSession.fromJson(Map<String, dynamic> json) => ExposureSession(
-    id: json['id'] as String,
-    startTime: DateTime.parse(json['startTime'] as String),
-    endTime: json['endTime'] != null ? DateTime.parse(json['endTime'] as String) : null,
-    spf: (json['spf'] as num).toDouble(),
-    skinType: json['skinType'] as String,
-    maxExposurePercent: (json['maxExposurePercent'] as num).toDouble(),
-    maxUVIndex: (json['maxUVIndex'] as num).toDouble(),
-    readings: (json['readings'] as List<dynamic>?)
-        ?.map((r) => UVReading.fromJson(r as Map<String, dynamic>))
-        .toList() ?? [],
-  );
+  factory ExposureSession.fromJson(Map<String, dynamic> json) {
+    try {
+      return ExposureSession(
+        id: (json['id'] as String?) ?? 'unknown',
+        startTime: json['startTime'] != null
+            ? DateTime.parse(json['startTime'] as String)
+            : DateTime.now(),
+        endTime: json['endTime'] != null
+            ? DateTime.tryParse(json['endTime'] as String)
+            : null,
+        spf: (json['spf'] as num?)?.toDouble() ?? 0.0,
+        skinType: (json['skinType'] as String?) ?? 'Tipo II - Clara',
+        maxExposurePercent: (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
+        maxUVIndex: (json['maxUVIndex'] as num?)?.toDouble() ?? 0.0,
+        readings: (json['readings'] as List<dynamic>?)
+            ?.map((r) {
+              try {
+                return UVReading.fromJson(r as Map<String, dynamic>);
+              } catch (_) {
+                return null;
+              }
+            })
+            .whereType<UVReading>()
+            .toList() ?? [],
+      );
+    } catch (e) {
+      return ExposureSession(
+        id: 'corrupted-${DateTime.now().millisecondsSinceEpoch}',
+        startTime: DateTime.now(),
+        spf: 0,
+        skinType: 'Tipo II - Clara',
+        maxExposurePercent: 0,
+        maxUVIndex: 0,
+      );
+    }
+  }
 }
 
 /// Modelo de cálculo de exposição UV.
@@ -120,11 +144,6 @@ class ExposureModel {
 
   /// Retorna a porcentagem de exposição acumulada
   double get accumulatedExposurePercent => _accumulatedExposurePercent;
-
-  /// Converte horas, minutos e segundos em total de segundos
-  int _toSeconds(int hours, int minutes, int seconds) {
-    return (hours * 3600) + (minutes * 60) + seconds;
-  }
 
   /// Calcula o tempo inicial de exposição segura baseado no índice UV atual
   /// 

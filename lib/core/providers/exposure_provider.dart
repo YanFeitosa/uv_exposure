@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
 import '../models/exposure_model.dart';
+import '../services/logger_service.dart';
 import '../services/uv_data_service.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
@@ -286,9 +287,10 @@ class ExposureProvider extends ChangeNotifier {
     _gapExceededMax = missedSeconds > maxGap;
     _gapUVIndex = _currentUVIndex;
     
-    debugPrint(
+    AppLogger.info(
       'Gap detectado: ${missedSeconds}s perdidos, '
       '${compensatedSeconds}s compensados (UV: ${_currentUVIndex.toStringAsFixed(1)})',
+      tag: 'ExposureProvider',
     );
     
     // Notificação de gap
@@ -299,7 +301,7 @@ class ExposureProvider extends ChangeNotifier {
         uvIndex: _currentUVIndex,
       );
     } catch (e) {
-      debugPrint('Erro ao exibir notificação de gap: $e');
+      AppLogger.warning('Erro ao exibir notificação de gap', tag: 'ExposureProvider', error: e);
     }
   }
 
@@ -334,7 +336,7 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              debugPrint('Erro ao exibir notificação de cache: $e');
+              AppLogger.warning('Erro ao exibir notificação de cache', tag: 'ExposureProvider', error: e);
             }
           }
         } else {
@@ -383,7 +385,7 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              debugPrint('Erro ao exibir notificação de cache: $e');
+              AppLogger.warning('Erro ao exibir notificação de cache', tag: 'ExposureProvider', error: e);
             }
           }
         }
@@ -415,7 +417,7 @@ class ExposureProvider extends ChangeNotifier {
     try {
       await NotificationService.showMonitoringStopped();
     } catch (e) {
-      debugPrint('Erro ao exibir notificação de parada: $e');
+      AppLogger.warning('Erro ao exibir notificação de parada', tag: 'ExposureProvider', error: e);
     }
     
     await stopMonitoring();
@@ -471,7 +473,7 @@ class ExposureProvider extends ChangeNotifier {
       try {
         await NotificationService.showExposureWarning(_model.accumulatedExposurePercent);
       } catch (e) {
-        debugPrint('Erro ao exibir notificação de aviso: $e');
+        AppLogger.warning('Erro ao exibir notificação de aviso', tag: 'ExposureProvider', error: e);
       }
     }
     
@@ -485,7 +487,7 @@ class ExposureProvider extends ChangeNotifier {
       try {
         await NotificationService.showExposureCritical();
       } catch (e) {
-        debugPrint('Erro ao exibir notificação crítica: $e');
+        AppLogger.warning('Erro ao exibir notificação crítica', tag: 'ExposureProvider', error: e);
       }
     }
   }
@@ -497,7 +499,7 @@ class ExposureProvider extends ChangeNotifier {
       _alarmActive = true;
       notifyListeners();
     } catch (e) {
-      debugPrint('Erro ao reproduzir alarme: $e');
+      AppLogger.error('Erro ao reproduzir alarme', tag: 'ExposureProvider', error: e);
     }
   }
 
@@ -565,7 +567,7 @@ class ExposureProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Erro ao restaurar sessão: $e');
+      AppLogger.error('Erro ao restaurar sessão', tag: 'ExposureProvider', error: e);
       return false;
     }
   }
