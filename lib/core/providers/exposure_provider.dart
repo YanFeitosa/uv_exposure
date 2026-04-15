@@ -112,13 +112,16 @@ class ExposureProvider extends ChangeNotifier {
   }) {
     if (connectionStatus != null) _connectionStatus = connectionStatus;
     if (connectionError != null) _connectionError = connectionError;
-    if (stoppedDueToDisconnection != null)
+    if (stoppedDueToDisconnection != null) {
       _stoppedDueToDisconnection = stoppedDueToDisconnection;
+    }
     if (gapDetected != null) _gapDetected = gapDetected;
-    if (lastGapDurationSeconds != null)
+    if (lastGapDurationSeconds != null) {
       _lastGapDurationSeconds = lastGapDurationSeconds;
-    if (lastGapCompensatedSeconds != null)
+    }
+    if (lastGapCompensatedSeconds != null) {
       _lastGapCompensatedSeconds = lastGapCompensatedSeconds;
+    }
     if (gapExceededMax != null) _gapExceededMax = gapExceededMax;
     if (gapUVIndex != null) _gapUVIndex = gapUVIndex;
     if (alarmActive != null) _alarmActive = alarmActive;
@@ -151,8 +154,9 @@ class ExposureProvider extends ChangeNotifier {
 
   /// Retorna o tempo restante de cache em segundos
   int get cacheTimeRemaining {
-    if (_disconnectedSince == null)
+    if (_disconnectedSince == null) {
       return AppConstants.cacheExpiration.inSeconds;
+    }
     final elapsed = DateTime.now().difference(_disconnectedSince!).inSeconds;
     final remaining = AppConstants.cacheExpiration.inSeconds - elapsed;
     return remaining > 0 ? remaining : 0;
@@ -313,7 +317,7 @@ class ExposureProvider extends ChangeNotifier {
 
   /// Compensa exposição perdida durante suspensão do sistema
   Future<void> _compensateGap(int missedSeconds) async {
-    final maxGap = AppConstants.maxGapSimulationSeconds;
+    const maxGap = AppConstants.maxGapSimulationSeconds;
     final compensatedSeconds = missedSeconds.clamp(0, maxGap);
 
     _model.accumulateExposure(_currentUVIndex, compensatedSeconds);

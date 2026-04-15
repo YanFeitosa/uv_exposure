@@ -1,7 +1,7 @@
-/// Testes unitários — HomeScreen (renderização, popup, sessão pendente)
-///
-/// Cobre: renderização de elementos visuais, popup de configuração,
-/// diálogo de sessão pendente.
+// Testes unitários — HomeScreen (renderização, popup, sessão pendente)
+//
+// Cobre: renderização de elementos visuais, popup de configuração,
+// diálogo de sessão pendente.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

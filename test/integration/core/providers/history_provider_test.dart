@@ -1,6 +1,6 @@
-/// Testes de integração — HistoryProvider
-///
-/// Cobre: load/filter/clear persistidos, ordenação, filtros temporais.
+// Testes de integração — HistoryProvider
+//
+// Cobre: load/filter/clear persistidos, ordenação, filtros temporais.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uv_exposure_app/core/providers/history_provider.dart';
@@ -8,7 +8,7 @@ import 'package:uv_exposure_app/core/models/exposure_model.dart';
 import 'package:uv_exposure_app/core/services/storage_service.dart';
 
 void main() {
-  ExposureSession _makeSession({
+  ExposureSession makeSession({
     required String id,
     required DateTime startTime,
     Duration duration = const Duration(hours: 1),
@@ -45,11 +45,11 @@ void main() {
     });
 
     test('deve carregar sessões do storage', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's1',
         startTime: DateTime(2026, 3, 10, 10),
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's2',
         startTime: DateTime(2026, 3, 15, 14),
       ));
@@ -61,11 +61,11 @@ void main() {
     });
 
     test('deve ordenar sessões por data (mais recente primeiro)', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'old',
         startTime: DateTime(2026, 1, 1),
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'new',
         startTime: DateTime(2026, 6, 1),
       ));
@@ -80,15 +80,15 @@ void main() {
   group('HistoryProvider — integração: filtros temporais', () {
     setUp(() async {
       final now = DateTime.now();
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'today',
         startTime: now.subtract(const Duration(minutes: 5)),
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'yesterday',
         startTime: now.subtract(const Duration(days: 1)),
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'old',
         startTime: now.subtract(const Duration(days: 15)),
       ));
@@ -116,7 +116,7 @@ void main() {
 
   group('HistoryProvider — integração: clearHistory', () {
     test('deve limpar todas as sessões', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's1',
         startTime: DateTime(2026, 3, 15),
       ));
@@ -131,7 +131,7 @@ void main() {
     });
 
     test('deve persistir a limpeza no storage', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's1',
         startTime: DateTime(2026, 3, 15),
       ));

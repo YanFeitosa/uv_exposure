@@ -1,6 +1,6 @@
-/// Testes de integração — SettingsScreen
-///
-/// Cobre: alternância de preferências (demo mode, alarme) com persistência no StorageService.
+// Testes de integração — SettingsScreen
+//
+// Cobre: alternância de preferências (demo mode, alarme) com persistência no StorageService.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -26,7 +26,7 @@ class InfoBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -67,7 +67,7 @@ class InfoBox extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 14,
-                      color: infoColor.withOpacity(0.8),
+                      color: infoColor.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

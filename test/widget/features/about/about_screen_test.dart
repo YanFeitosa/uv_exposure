@@ -1,6 +1,6 @@
-/// Testes unitários — AboutScreen
-///
-/// Cobre: renderização de título, descrição e disclaimer.
+// Testes unitários — AboutScreen
+//
+// Cobre: renderização de título, descrição e disclaimer.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uv_exposure_app/core/constants/app_strings.dart';

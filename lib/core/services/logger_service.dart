@@ -56,7 +56,7 @@ class AppLogger {
     final levelStr = level.name.toUpperCase().padRight(7);
     final tagStr = tag != null ? '[$tag] ' : '';
 
-    final buffer = StringBuffer('$timestamp $levelStr ${tagStr}$message');
+    final buffer = StringBuffer('$timestamp $levelStr $tagStr$message');
 
     if (error != null) {
       buffer.write(' | Erro: $error');

@@ -1,6 +1,6 @@
-/// Testes unitários — UVDataService
-///
-/// Cobre parsing JSON, serialização, busca HTTP com sucesso, cache e reachability.
+// Testes unitários — UVDataService
+//
+// Cobre parsing JSON, serialização, busca HTTP com sucesso, cache e reachability.
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

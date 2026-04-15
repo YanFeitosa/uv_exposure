@@ -17,7 +17,7 @@ class AboutScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Logo
-            Icon(
+            const Icon(
               Icons.wb_sunny,
               size: 80,
               color: AppColors.primary,
@@ -48,7 +48,7 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.secondary),
+                        const Icon(Icons.info_outline, color: AppColors.secondary),
                         const SizedBox(width: 8),
                         Text(
                           'Descrição',
@@ -110,7 +110,7 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.build, color: AppColors.secondary),
+                        const Icon(Icons.build, color: AppColors.secondary),
                         const SizedBox(width: 8),
                         Text(
                           'Tecnologias',

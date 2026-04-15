@@ -337,7 +337,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               borderData: FlBorderData(show: false),
-              gridData: FlGridData(
+              gridData: const FlGridData(
                 show: true,
                 horizontalInterval: 25,
                 drawVerticalLine: false,
@@ -428,7 +428,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Text(
               '${AppStrings.spfPrefix} ${session.spf.toInt()}',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.secondary,
                 fontWeight: FontWeight.bold,
               ),

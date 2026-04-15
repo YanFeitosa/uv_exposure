@@ -18,7 +18,7 @@ void main() {
     await StorageService.init();
   });
 
-  ExposureSession _makeSession({
+  ExposureSession makeSession({
     required String id,
     required DateTime startTime,
     Duration duration = const Duration(hours: 1),
@@ -61,7 +61,7 @@ void main() {
         jsonEncode(sessions),
       );
 
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'trigger-truncation',
         startTime: DateTime(2027, 1, 1),
       ));
@@ -69,18 +69,18 @@ void main() {
       final history = await StorageService.getExposureHistory();
       expect(history.length, lessThanOrEqualTo(AppConstants.maxHistoryEntries));
       expect(history.any((s) => s.id == 'trigger-truncation'), isTrue);
-    }, timeout: Timeout(Duration(minutes: 1)));
+    }, timeout: const Timeout(Duration(minutes: 1)));
 
     test('deve remover sessões mais antigas ao exceder limite', () async {
       for (int i = 0; i < 5; i++) {
-        await StorageService.saveExposureSession(_makeSession(
+        await StorageService.saveExposureSession(makeSession(
           id: 'old-$i',
           startTime: DateTime(2026, 1, 1).add(Duration(hours: i)),
         ));
       }
       final countBefore = (await StorageService.getExposureHistory()).length;
 
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'new-session-extra',
         startTime: DateTime(2026, 6, 1),
       ));

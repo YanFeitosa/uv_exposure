@@ -30,7 +30,7 @@ void main() {
     }
   });
 
-  List<ExposureSession> _sampleSessions() {
+  List<ExposureSession> sampleSessions() {
     return [
       ExposureSession(
         id: '1',
@@ -60,7 +60,7 @@ void main() {
 
   group('ExportService — exportToCSV', () {
     test('deve gerar arquivo CSV com cabeçalho e dados', () async {
-      final path = await ExportService.exportToCSV(_sampleSessions());
+      final path = await ExportService.exportToCSV(sampleSessions());
       final file = File(path);
 
       expect(file.existsSync(), isTrue);
@@ -110,7 +110,7 @@ void main() {
 
   group('ExportService — exportToJSON', () {
     test('deve gerar arquivo JSON válido com metadados', () async {
-      final path = await ExportService.exportToJSON(_sampleSessions());
+      final path = await ExportService.exportToJSON(sampleSessions());
       final file = File(path);
 
       expect(file.existsSync(), isTrue);
@@ -127,7 +127,7 @@ void main() {
     });
 
     test('deve conter dados de sessão corretos no JSON', () async {
-      final path = await ExportService.exportToJSON(_sampleSessions());
+      final path = await ExportService.exportToJSON(sampleSessions());
       final content = File(path).readAsStringSync();
       final data = jsonDecode(content) as Map<String, dynamic>;
       final sessions = data['sessions'] as List;

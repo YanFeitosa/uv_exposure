@@ -1,6 +1,6 @@
-/// Testes unitários — HistoryProvider
-///
-/// Cobre: estado inicial, estatísticas, dados diários.
+// Testes unitários — HistoryProvider
+//
+// Cobre: estado inicial, estatísticas, dados diários.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uv_exposure_app/core/providers/history_provider.dart';
@@ -8,7 +8,7 @@ import 'package:uv_exposure_app/core/models/exposure_model.dart';
 import 'package:uv_exposure_app/core/services/storage_service.dart';
 
 void main() {
-  ExposureSession _makeSession({
+  ExposureSession makeSession({
     required String id,
     required DateTime startTime,
     Duration duration = const Duration(hours: 1),
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('deve calcular estatísticas para uma sessão', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'single',
         startTime: DateTime(2026, 3, 15, 10),
         duration: const Duration(hours: 2),
@@ -76,14 +76,14 @@ void main() {
     });
 
     test('deve calcular média e máximo para múltiplas sessões', () async {
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's1',
         startTime: DateTime(2026, 3, 15, 10),
         duration: const Duration(hours: 1),
         maxExposure: 40.0,
         maxUV: 6.0,
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 's2',
         startTime: DateTime(2026, 3, 16, 10),
         duration: const Duration(hours: 2),
@@ -139,14 +139,14 @@ void main() {
       final today = DateTime.now();
       final startOfToday = DateTime(today.year, today.month, today.day);
 
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'today-1',
         startTime: startOfToday.add(const Duration(hours: 8)),
         duration: const Duration(hours: 1),
         maxExposure: 30.0,
         maxUV: 5.0,
       ));
-      await StorageService.saveExposureSession(_makeSession(
+      await StorageService.saveExposureSession(makeSession(
         id: 'today-2',
         startTime: startOfToday.add(const Duration(hours: 14)),
         duration: const Duration(hours: 2),

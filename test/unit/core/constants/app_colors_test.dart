@@ -70,29 +70,29 @@ void main() {
   group('AppColors.getExposureColor — gradiente de risco', () {
     test('0% de exposição deve ser verde', () {
       final color = AppColors.getExposureColor(0);
-      expect(color.value, equals(AppColors.exposureSafe.value));
+      expect(color.toARGB32(), equals(AppColors.exposureSafe.toARGB32()));
     });
 
     test('50% de exposição deve ser amarelo', () {
       final color = AppColors.getExposureColor(50);
-      expect(color.value, equals(AppColors.exposureWarning.value));
+      expect(color.toARGB32(), equals(AppColors.exposureWarning.toARGB32()));
     });
 
     test('100% de exposição deve ser vermelho', () {
       final color = AppColors.getExposureColor(100);
-      expect(color.value, equals(AppColors.exposureDanger.value));
+      expect(color.toARGB32(), equals(AppColors.exposureDanger.toARGB32()));
     });
 
     test('25% deve estar entre verde e amarelo', () {
       final color = AppColors.getExposureColor(25);
       // Componente verde deve ser forte, vermelho moderado
-      expect(color.green, greaterThan(0));
+      expect((color.g * 255).round(), greaterThan(0));
     });
 
     test('75% deve estar entre amarelo e vermelho', () {
       final color = AppColors.getExposureColor(75);
       // Componente vermelho deve ser dominante
-      expect(color.red, greaterThan(color.blue));
+      expect((color.r * 255).round(), greaterThan((color.b * 255).round()));
     });
 
     test('exposição progressiva deve transicionar verde→amarelo→vermelho', () {
@@ -101,10 +101,10 @@ void main() {
       final c100 = AppColors.getExposureColor(100); // vermelho
 
       // Verde → Amarelo: componente vermelho deve aumentar
-      expect(c50.red, greaterThan(c0.red),
+      expect((c50.r * 255).round(), greaterThan((c0.r * 255).round()),
           reason: 'Vermelho deve crescer de verde para amarelo');
       // Amarelo → Vermelho: componente verde deve diminuir
-      expect(c100.green, lessThan(c50.green),
+      expect((c100.g * 255).round(), lessThan((c50.g * 255).round()),
           reason: 'Verde deve diminuir de amarelo para vermelho');
     });
 

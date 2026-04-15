@@ -169,8 +169,9 @@ class ExposureModel {
   /// Calcula o tempo total de exposição segura estimado
   /// Retorna estimativa do tempo total seguro em segundos
   int calculateSafeExposureTime(int secondsElapsed) {
-    if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold)
+    if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold) {
       return 0;
+    }
     return ((secondsElapsed * 100) / _accumulatedExposurePercent).toInt();
   }
 

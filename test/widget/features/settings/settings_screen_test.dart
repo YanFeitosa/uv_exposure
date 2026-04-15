@@ -1,6 +1,6 @@
-/// Testes unitários — SettingsScreen (renderização)
-///
-/// Cobre: renderização de título e switches.
+// Testes unitários — SettingsScreen (renderização)
+//
+// Cobre: renderização de título e switches.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

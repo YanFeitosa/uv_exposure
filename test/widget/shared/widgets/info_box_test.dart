@@ -1,6 +1,6 @@
-/// Testes unitários — InfoBox
-///
-/// Cobre: renderização de título, info e subtitle.
+// Testes unitários — InfoBox
+//
+// Cobre: renderização de título, info e subtitle.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uv_exposure_app/shared/widgets/info_box.dart';

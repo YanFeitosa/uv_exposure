@@ -1,7 +1,7 @@
-/// Testes de integração — HomeScreen
-///
-/// Cobre: descartar sessão+limpar dados, restaurar sessão+navegar,
-/// iniciar monitoramento completo com seleções.
+// Testes de integração — HomeScreen
+//
+// Cobre: descartar sessão+limpar dados, restaurar sessão+navegar,
+// iniciar monitoramento completo com seleções.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

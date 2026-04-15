@@ -1,7 +1,7 @@
-/// Testes unitários — MonitorScreen (renderização, diálogos)
-///
-/// Cobre: renderização de elementos visuais, banner demo, InfoBoxes,
-/// diálogos de confirmação (parar, voltar).
+// Testes unitários — MonitorScreen (renderização, diálogos)
+//
+// Cobre: renderização de elementos visuais, banner demo, InfoBoxes,
+// diálogos de confirmação (parar, voltar).
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

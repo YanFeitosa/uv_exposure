@@ -1,6 +1,6 @@
-/// Testes unitários — StorageService
-///
-/// Cobre CRUD de sessões, preferências, cache UV, modos e permissões.
+// Testes unitários — StorageService
+//
+// Cobre CRUD de sessões, preferências, cache UV, modos e permissões.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uv_exposure_app/core/services/storage_service.dart';
@@ -13,7 +13,7 @@ void main() {
     await StorageService.init();
   });
 
-  ExposureSession _makeSession({
+  ExposureSession makeSession({
     required String id,
     required DateTime startTime,
     Duration duration = const Duration(hours: 1),
@@ -96,7 +96,7 @@ void main() {
 
     test('deve salvar e recuperar uma sessão', () async {
       final session =
-          _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15, 10));
+          makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15, 10));
       await StorageService.saveExposureSession(session);
 
       final history = await StorageService.getExposureHistory();
@@ -106,7 +106,7 @@ void main() {
 
     test('deve salvar múltiplas sessões', () async {
       for (int i = 0; i < 5; i++) {
-        await StorageService.saveExposureSession(_makeSession(
+        await StorageService.saveExposureSession(makeSession(
           id: 'session-$i',
           startTime: DateTime(2026, 3, 15, 10 + i),
         ));
@@ -117,7 +117,7 @@ void main() {
 
     test('deve limpar todo o histórico', () async {
       await StorageService.saveExposureSession(
-          _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15)));
+          makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15)));
       await StorageService.clearHistory();
       final history = await StorageService.getExposureHistory();
       expect(history, isEmpty);

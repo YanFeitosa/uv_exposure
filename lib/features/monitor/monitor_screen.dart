@@ -447,7 +447,7 @@ class _MonitorScreenState extends State<MonitorScreen>
             color: provider.gapExceededMax ? Colors.orange : Colors.blue,
             size: 36,
           ),
-          title: Text(AppStrings.gapDialogTitle),
+          title: const Text(AppStrings.gapDialogTitle),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,14 +473,14 @@ class _MonitorScreenState extends State<MonitorScreen>
                   ForegroundService.openBatteryOptimizationSettings();
                 },
                 icon: const Icon(Icons.battery_saver, size: 18),
-                label: Text(AppStrings.gapOpenBatterySettings),
+                label: const Text(AppStrings.gapOpenBatterySettings),
               ),
             TextButton(
               onPressed: () {
                 provider.dismissGapWarning();
                 Navigator.of(ctx).pop();
               },
-              child: Text(AppStrings.gapDismiss),
+              child: const Text(AppStrings.gapDismiss),
             ),
           ],
         );

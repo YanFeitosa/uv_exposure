@@ -1,6 +1,6 @@
-/// Testes unitários — ConnectionStatusBadge
-///
-/// Cobre: exibição de estados de conexão (offline, connected, connecting, cache).
+// Testes unitários — ConnectionStatusBadge
+//
+// Cobre: exibição de estados de conexão (offline, connected, connecting, cache).
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

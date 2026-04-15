@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              icon: Icon(Icons.wb_sunny, color: AppColors.primary, size: 36),
+              icon: const Icon(Icons.wb_sunny, color: AppColors.primary, size: 36),
               title: const Text(AppStrings.sessionConfigTitle),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       labelText: AppStrings.skinTypeLabel,
                       prefixIcon: Icon(Icons.person),
                     ),
-                    value: selectedSkinType,
+                    initialValue: selectedSkinType,
                     items: skinTypes.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       labelText: AppStrings.spfLabel,
                       prefixIcon: Icon(Icons.shield),
                     ),
-                    value: selectedSpf,
+                    initialValue: selectedSpf,
                     items: AppStrings.spfValues.map((String value) {
                       final label = value == '0'
                           ? AppStrings.noSunscreen
@@ -343,16 +343,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Informação de conexão WiFi
                   Card(
-                    color: AppColors.primary.withOpacity(0.2),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
                             color: AppColors.secondary,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               AppStrings.wifiInfoMessage,

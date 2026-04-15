@@ -1,6 +1,6 @@
-/// Testes unitários — ExposureModel, UVReading, ExposureSession
-///
-/// Valida lógica pura de cálculo, serialização e propriedades do modelo.
+// Testes unitários — ExposureModel, UVReading, ExposureSession
+//
+// Valida lógica pura de cálculo, serialização e propriedades do modelo.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uv_exposure_app/core/models/exposure_model.dart';
 import 'package:uv_exposure_app/core/constants/app_constants.dart';
@@ -119,7 +119,7 @@ void main() {
 
       test('deve funcionar com UV fracionário', () {
         model.accumulateExposure(3.7, 100);
-        final expected = (3.7 * 100) / (15.0 * 30.0 * 60.0) * 100;
+        const expected = (3.7 * 100) / (15.0 * 30.0 * 60.0) * 100;
         expect(model.accumulatedExposurePercent, closeTo(expected, 0.001));
       });
     });

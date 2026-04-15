@@ -64,7 +64,7 @@ void main() {
       for (int i = 0; i < 3600; i++) {
         model.accumulateExposure(5.0, 1);
       }
-      final expected = (5.0 * 3600) / (15.0 * 30.0 * 60.0) * 100;
+      const expected = (5.0 * 3600) / (15.0 * 30.0 * 60.0) * 100;
       expect(model.accumulatedExposurePercent,
           closeTo(expected, expected * 0.001));
     });

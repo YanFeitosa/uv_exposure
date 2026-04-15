@@ -1,7 +1,6 @@
-/// Testes unitários — ExposureProvider
-///
-/// Cobre inicialização, getters, formatTime, modo demo, gap, alarme, dispose.
-import 'dart:convert';
+// Testes unitários — ExposureProvider
+//
+// Cobre inicialização, getters, formatTime, modo demo, gap, alarme, dispose.
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;

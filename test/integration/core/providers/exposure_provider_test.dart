@@ -1,8 +1,7 @@
-/// Testes de integração — ExposureProvider
-///
-/// Cobre: ciclo completo start+accumulate+stop, persistência, demo UV simulation,
-/// restauração de sessão.
-import 'dart:convert';
+// Testes de integração — ExposureProvider
+//
+// Cobre: ciclo completo start+accumulate+stop, persistência, demo UV simulation,
+// restauração de sessão.
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,10 +52,6 @@ void main() {
   tearDown(() {
     UVDataService.restoreHttpClient();
   });
-
-  http.Response jsonResponse(Map<String, dynamic> body) {
-    return http.Response(jsonEncode(body), 200);
-  }
 
   group('ExposureProvider — integração: ciclo de monitoramento', () {
     test('startMonitoring deve ativar e stopMonitoring desativar', () async {
