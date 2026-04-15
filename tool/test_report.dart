@@ -51,11 +51,15 @@ void main() async {
 
   // ── TEST SUMMARY ──
   print('── Test summary ─────────────────────────────');
-  print('  Unit tests:        ${unitCount.toString().padLeft(4)} (${unitFiles.length} files)');
-  print('  Widget tests:      ${widgetCount.toString().padLeft(4)} (${widgetFiles.length} files)');
-  print('  Integration tests: ${integrationCount.toString().padLeft(4)} (${integrationFiles.length} files)');
+  print(
+      '  Unit tests:        ${unitCount.toString().padLeft(4)} (${unitFiles.length} files)');
+  print(
+      '  Widget tests:      ${widgetCount.toString().padLeft(4)} (${widgetFiles.length} files)');
+  print(
+      '  Integration tests: ${integrationCount.toString().padLeft(4)} (${integrationFiles.length} files)');
   print('  ────────────────────────');
-  print('  Total:             ${totalCount.toString().padLeft(4)} (${allTestFiles.length} files)');
+  print(
+      '  Total:             ${totalCount.toString().padLeft(4)} (${allTestFiles.length} files)');
   print('');
 
   // ── TAG SUMMARY ──
@@ -79,10 +83,10 @@ void main() async {
   } else {
     final globalHit = coverage.values.fold(0, (s, c) => s + c.linesHit);
     final globalTotal = coverage.values.fold(0, (s, c) => s + c.linesTotal);
-    final globalPct =
-        globalTotal > 0 ? (globalHit / globalTotal * 100) : 0.0;
+    final globalPct = globalTotal > 0 ? (globalHit / globalTotal * 100) : 0.0;
 
-    print('  Global: ${globalPct.toStringAsFixed(1)}% ($globalHit/$globalTotal lines)');
+    print(
+        '  Global: ${globalPct.toStringAsFixed(1)}% ($globalHit/$globalTotal lines)');
     print('');
     print('  Per file:');
 
@@ -93,7 +97,8 @@ void main() async {
       final pct = c.linesHit / c.linesTotal * 100;
       final icon = pct >= 80 ? '✅' : (pct >= 50 ? '⚠️' : '❌');
       final name = file.padRight(48);
-      print('    $icon $name ${pct.toStringAsFixed(1).padLeft(5)}% (${c.linesHit}/${c.linesTotal})');
+      print(
+          '    $icon $name ${pct.toStringAsFixed(1).padLeft(5)}% (${c.linesHit}/${c.linesTotal})');
     }
   }
   print('');
@@ -146,7 +151,8 @@ void main() async {
     return !content.contains('@Tags(');
   }).toList();
 
-  print('  Test files without tags: ${untaggedFiles.length}/${allTestFiles.length}');
+  print(
+      '  Test files without tags: ${untaggedFiles.length}/${allTestFiles.length}');
   print('    (normal — tags are only for edge/failure scenarios)');
   print('');
 

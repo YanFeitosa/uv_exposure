@@ -25,32 +25,32 @@ class ExposureProvider extends ChangeNotifier {
   late double _spf;
   late String _skinType;
   late ExposureModel _model;
-  
+
   // Estado do monitoramento
   bool _isMonitoring = false;
   int _secondsElapsed = 0;
   double _currentUVIndex = 1.0;
   Timer? _timer;
-  
+
   // Estado da conexão com o dispositivo
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   String? _connectionError;
   DateTime? _disconnectedSince;
   bool _stoppedDueToDisconnection = false;
-  
+
   // Alarme sonoro
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _alarmPlayed = false;
   bool _alarmActive = false;
   bool _warningNotificationSent = false;
   bool _cacheNotificationSent = false;
-  
+
   // Controle de requisições HTTP
   bool _isFetching = false;
-  
+
   // Modo Demo (dados UV simulados, sem HTTP)
   bool _isDemoMode = false;
-  
+
   // Detecção de gap (suspensão do sistema)
   DateTime? _lastTickTime;
   bool _gapDetected = false;
@@ -59,7 +59,7 @@ class ExposureProvider extends ChangeNotifier {
   bool _gapExceededMax = false;
   bool _gapDismissed = false;
   double _gapUVIndex = 0.0;
-  
+
   // Dados da sessão atual
   String? _currentSessionId;
   DateTime? _sessionStartTime;
@@ -78,14 +78,14 @@ class ExposureProvider extends ChangeNotifier {
   bool get alarmActive => _alarmActive;
   bool get stoppedDueToDisconnection => _stoppedDueToDisconnection;
   bool get isDemoMode => _isDemoMode;
-  
+
   bool get gapDetected => _gapDetected;
   int get lastGapDurationSeconds => _lastGapDurationSeconds;
   int get lastGapCompensatedSeconds => _lastGapCompensatedSeconds;
   bool get gapExceededMax => _gapExceededMax;
   bool get gapDismissed => _gapDismissed;
   double get gapUVIndex => _gapUVIndex;
-  
+
   /// Sinaliza que o usuário viu e dispensou o aviso de gap
   void dismissGapWarning() {
     _gapDismissed = true;
@@ -112,10 +112,13 @@ class ExposureProvider extends ChangeNotifier {
   }) {
     if (connectionStatus != null) _connectionStatus = connectionStatus;
     if (connectionError != null) _connectionError = connectionError;
-    if (stoppedDueToDisconnection != null) _stoppedDueToDisconnection = stoppedDueToDisconnection;
+    if (stoppedDueToDisconnection != null)
+      _stoppedDueToDisconnection = stoppedDueToDisconnection;
     if (gapDetected != null) _gapDetected = gapDetected;
-    if (lastGapDurationSeconds != null) _lastGapDurationSeconds = lastGapDurationSeconds;
-    if (lastGapCompensatedSeconds != null) _lastGapCompensatedSeconds = lastGapCompensatedSeconds;
+    if (lastGapDurationSeconds != null)
+      _lastGapDurationSeconds = lastGapDurationSeconds;
+    if (lastGapCompensatedSeconds != null)
+      _lastGapCompensatedSeconds = lastGapCompensatedSeconds;
     if (gapExceededMax != null) _gapExceededMax = gapExceededMax;
     if (gapUVIndex != null) _gapUVIndex = gapUVIndex;
     if (alarmActive != null) _alarmActive = alarmActive;
@@ -126,40 +129,42 @@ class ExposureProvider extends ChangeNotifier {
     if (disconnectedSince != null) _disconnectedSince = disconnectedSince;
     notifyListeners();
   }
-  
+
   /// Ativa ou desativa o modo Demo (deve ser chamado antes de startMonitoring)
   void setDemoMode(bool value) {
     _isDemoMode = value;
     notifyListeners();
   }
-  
+
   /// Retorna se deve mostrar o indicador de cache
   bool get shouldShowCacheIndicator {
     if (_disconnectedSince == null) return false;
-    return secondsDisconnected >= AppConstants.cacheIndicatorThreshold.inSeconds;
+    return secondsDisconnected >=
+        AppConstants.cacheIndicatorThreshold.inSeconds;
   }
-  
+
   /// Retorna há quantos segundos está desconectado
   int get secondsDisconnected {
     if (_disconnectedSince == null) return 0;
     return DateTime.now().difference(_disconnectedSince!).inSeconds;
   }
-  
+
   /// Retorna o tempo restante de cache em segundos
   int get cacheTimeRemaining {
-    if (_disconnectedSince == null) return AppConstants.cacheExpiration.inSeconds;
+    if (_disconnectedSince == null)
+      return AppConstants.cacheExpiration.inSeconds;
     final elapsed = DateTime.now().difference(_disconnectedSince!).inSeconds;
     final remaining = AppConstants.cacheExpiration.inSeconds - elapsed;
     return remaining > 0 ? remaining : 0;
   }
-  
+
   double get accumulatedExposurePercent => _model.accumulatedExposurePercent;
   bool get isCritical => _model.isCritical;
   bool get isWarning => _model.isWarning;
 
-  int get initialSafeExposureTime => 
+  int get initialSafeExposureTime =>
       _model.calculateInitialSafeExposureTime(_currentUVIndex);
-  
+
   int get remainingSafeExposureTime {
     final remaining = _model.calculateRemainingSafeTime(_secondsElapsed);
     return remaining > 0 ? remaining : 0;
@@ -203,19 +208,19 @@ class ExposureProvider extends ChangeNotifier {
     _isMonitoring = true;
     _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
     _sessionStartTime = DateTime.now();
-    
+
     await _checkConnection();
-    
+
     // Inicia o Foreground Service (Android) para manter o app vivo
     await ForegroundService.start();
-    
+
     // Timer principal (1 segundo)
     _lastTickTime = DateTime.now();
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (_) => _tick(),
     );
-    
+
     notifyListeners();
   }
 
@@ -237,7 +242,7 @@ class ExposureProvider extends ChangeNotifier {
     // Para o Foreground Service
     await ForegroundService.stop();
     await _saveSession();
-    
+
     notifyListeners();
   }
 
@@ -251,7 +256,7 @@ class ExposureProvider extends ChangeNotifier {
   /// Retoma o monitoramento
   void resumeMonitoring() {
     if (!_isMonitoring || _timer != null) return;
-    
+
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (_) => _tick(),
@@ -261,7 +266,7 @@ class ExposureProvider extends ChangeNotifier {
 
   Future<void> _tick() async {
     final now = DateTime.now();
-    
+
     // Compensação de gap (suspensão do sistema)
     if (_lastTickTime != null) {
       final elapsedSinceLastTick = now.difference(_lastTickTime!).inSeconds;
@@ -271,15 +276,15 @@ class ExposureProvider extends ChangeNotifier {
       }
     }
     _lastTickTime = now;
-    
+
     // Acumula exposição UV
     _secondsElapsed++;
     _model.accumulateExposure(_currentUVIndex, 1);
-    
+
     // Busca dados UV do sensor periodicamente
     if (_secondsElapsed % AppConstants.dataFetchInterval.inSeconds == 0) {
       await _fetchUVData();
-      
+
       // Registra leitura na sessão e atualiza o UV máximo
       _sessionReadings.add(UVReading(
         uvIndex: _currentUVIndex,
@@ -289,20 +294,20 @@ class ExposureProvider extends ChangeNotifier {
         _maxUVIndex = _currentUVIndex;
       }
     }
-    
+
     await _checkExposureLimits();
-    
+
     // Salva progresso periodicamente (a cada 30 segundos)
     if (_secondsElapsed % AppConstants.saveProgressInterval == 0) {
       await _saveProgress();
     }
-    
+
     // Atualiza notificação do Foreground Service
     await ForegroundService.updateProgress(
       _model.accumulatedExposurePercent,
       formatTime(_secondsElapsed),
     );
-    
+
     notifyListeners();
   }
 
@@ -310,10 +315,10 @@ class ExposureProvider extends ChangeNotifier {
   Future<void> _compensateGap(int missedSeconds) async {
     final maxGap = AppConstants.maxGapSimulationSeconds;
     final compensatedSeconds = missedSeconds.clamp(0, maxGap);
-    
+
     _model.accumulateExposure(_currentUVIndex, compensatedSeconds);
     _secondsElapsed += compensatedSeconds;
-    
+
     // Registra estado do gap para a UI
     _gapDetected = true;
     _gapDismissed = false;
@@ -321,13 +326,13 @@ class ExposureProvider extends ChangeNotifier {
     _lastGapCompensatedSeconds = compensatedSeconds;
     _gapExceededMax = missedSeconds > maxGap;
     _gapUVIndex = _currentUVIndex;
-    
+
     AppLogger.info(
       'Gap detectado: ${missedSeconds}s perdidos, '
       '${compensatedSeconds}s compensados (UV: ${_currentUVIndex.toStringAsFixed(1)})',
       tag: 'ExposureProvider',
     );
-    
+
     // Notificação de gap
     try {
       await NotificationService.showGapWarning(
@@ -336,7 +341,8 @@ class ExposureProvider extends ChangeNotifier {
         uvIndex: _currentUVIndex,
       );
     } catch (e) {
-      AppLogger.warning('Erro ao exibir notificação de gap', tag: 'ExposureProvider', error: e);
+      AppLogger.warning('Erro ao exibir notificação de gap',
+          tag: 'ExposureProvider', error: e);
     }
   }
 
@@ -349,19 +355,20 @@ class ExposureProvider extends ChangeNotifier {
       _currentUVIndex = _generateSimulatedUV();
       return;
     }
-    
+
     // Evita chamadas HTTP concorrentes
     if (_isFetching) return;
     _isFetching = true;
-    
-    try {      
+
+    try {
       final data = await UVDataService.fetchUVData();
-      
-      _currentUVIndex = data.uvIndex > 0 ? data.uvIndex : AppConstants.defaultUVIndex;
-      
+
+      _currentUVIndex =
+          data.uvIndex > 0 ? data.uvIndex : AppConstants.defaultUVIndex;
+
       if (data.isFromCache) {
         _disconnectedSince ??= DateTime.now();
-        
+
         // Mostra cache após threshold
         if (shouldShowCacheIndicator) {
           _connectionStatus = ConnectionStatus.usingCache;
@@ -371,11 +378,12 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              AppLogger.warning('Erro ao exibir notificação de cache', tag: 'ExposureProvider', error: e);
+              AppLogger.warning('Erro ao exibir notificação de cache',
+                  tag: 'ExposureProvider', error: e);
             }
           }
         }
-        
+
         // Verifica expiração do cache
         if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
           await _stopDueToDisconnection();
@@ -386,24 +394,23 @@ class ExposureProvider extends ChangeNotifier {
         _disconnectedSince = null;
       }
       _connectionError = null;
-      
+
       await StorageService.cacheUVData(_currentUVIndex);
-      
     } on UVDataException catch (e) {
       _disconnectedSince ??= DateTime.now();
-      
+
       // Mostra desconectado após threshold
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
         _connectionError = e.message;
       }
-      
+
       // Verifica expiração do cache
       if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
         await _stopDueToDisconnection();
         return;
       }
-      
+
       // Fallback: cache local
       final cached = await StorageService.getCachedUVData();
       if (cached != null) {
@@ -416,19 +423,20 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              AppLogger.warning('Erro ao exibir notificação de cache', tag: 'ExposureProvider', error: e);
+              AppLogger.warning('Erro ao exibir notificação de cache',
+                  tag: 'ExposureProvider', error: e);
             }
           }
         }
       }
     } catch (e) {
       _disconnectedSince ??= DateTime.now();
-      
+
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
         _connectionError = '${AppStrings.unexpectedError}: $e';
       }
-      
+
       if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
         await _stopDueToDisconnection();
         return;
@@ -437,20 +445,21 @@ class ExposureProvider extends ChangeNotifier {
       _isFetching = false;
     }
   }
-  
+
   /// Para o monitoramento por perda prolongada de conexão
   Future<void> _stopDueToDisconnection() async {
     _stoppedDueToDisconnection = true;
-    _connectionError = AppStrings.monitoringStoppedNoConnection.replaceAll(
-        '{minutes}', '${AppConstants.cacheExpiration.inMinutes}');
-    
+    _connectionError = AppStrings.monitoringStoppedNoConnection
+        .replaceAll('{minutes}', '${AppConstants.cacheExpiration.inMinutes}');
+
     // Notifica parada por desconexão
     try {
       await NotificationService.showMonitoringStopped();
     } catch (e) {
-      AppLogger.warning('Erro ao exibir notificação de parada', tag: 'ExposureProvider', error: e);
+      AppLogger.warning('Erro ao exibir notificação de parada',
+          tag: 'ExposureProvider', error: e);
     }
-    
+
     await stopMonitoring();
   }
 
@@ -468,19 +477,19 @@ class ExposureProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    
+
     _connectionStatus = ConnectionStatus.connecting;
     notifyListeners();
-    
+
     final isReachable = await UVDataService.isDeviceReachable();
-    _connectionStatus = isReachable 
-        ? ConnectionStatus.connected 
+    _connectionStatus = isReachable
+        ? ConnectionStatus.connected
         : ConnectionStatus.disconnected;
-    
+
     if (!isReachable) {
       _connectionError = AppStrings.deviceNotFound;
     }
-    
+
     notifyListeners();
   }
 
@@ -488,12 +497,12 @@ class ExposureProvider extends ChangeNotifier {
   Future<bool> retryConnection() async {
     UVDataService.resetUrlPreference();
     await _checkConnection();
-    
+
     if (_connectionStatus == ConnectionStatus.connected) {
       _cacheNotificationSent = false;
       await NotificationService.cancel(AppConstants.notificationCacheId);
     }
-    
+
     return _connectionStatus == ConnectionStatus.connected;
   }
 
@@ -502,12 +511,14 @@ class ExposureProvider extends ChangeNotifier {
     if (_model.isWarning && !_warningNotificationSent) {
       _warningNotificationSent = true;
       try {
-        await NotificationService.showExposureWarning(_model.accumulatedExposurePercent);
+        await NotificationService.showExposureWarning(
+            _model.accumulatedExposurePercent);
       } catch (e) {
-        AppLogger.warning('Erro ao exibir notificação de aviso', tag: 'ExposureProvider', error: e);
+        AppLogger.warning('Erro ao exibir notificação de aviso',
+            tag: 'ExposureProvider', error: e);
       }
     }
-    
+
     // Alarme crítico ao atingir 100%
     if (_model.isCritical && !_alarmPlayed) {
       _alarmPlayed = true;
@@ -518,7 +529,8 @@ class ExposureProvider extends ChangeNotifier {
       try {
         await NotificationService.showExposureCritical();
       } catch (e) {
-        AppLogger.warning('Erro ao exibir notificação crítica', tag: 'ExposureProvider', error: e);
+        AppLogger.warning('Erro ao exibir notificação crítica',
+            tag: 'ExposureProvider', error: e);
       }
     }
   }
@@ -530,7 +542,8 @@ class ExposureProvider extends ChangeNotifier {
       _alarmActive = true;
       notifyListeners();
     } catch (e) {
-      AppLogger.error('Erro ao reproduzir alarme', tag: 'ExposureProvider', error: e);
+      AppLogger.error('Erro ao reproduzir alarme',
+          tag: 'ExposureProvider', error: e);
     }
   }
 
@@ -553,7 +566,7 @@ class ExposureProvider extends ChangeNotifier {
 
   Future<void> _saveSession() async {
     if (_currentSessionId == null || _sessionStartTime == null) return;
-    
+
     final session = ExposureSession(
       id: _currentSessionId!,
       startTime: _sessionStartTime!,
@@ -564,7 +577,7 @@ class ExposureProvider extends ChangeNotifier {
       maxUVIndex: _maxUVIndex,
       readings: _sessionReadings,
     );
-    
+
     await StorageService.saveExposureSession(session);
     await StorageService.clearLastSession();
   }
@@ -573,32 +586,35 @@ class ExposureProvider extends ChangeNotifier {
   Future<bool> restoreLastSession() async {
     final lastSession = await StorageService.getLastSession();
     if (lastSession == null) return false;
-    
+
     try {
       _spf = lastSession['spf'] as double;
       _skinType = lastSession['skinType'] as String;
       _model = ExposureModel(spf: _spf, skinType: _skinType);
-      _model.setAccumulatedExposure(lastSession['accumulatedExposure'] as double);
+      _model
+          .setAccumulatedExposure(lastSession['accumulatedExposure'] as double);
       _secondsElapsed = lastSession['secondsElapsed'] as int;
-      
+
       // Retoma monitoramento
       _isMonitoring = true;
       _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
-      _sessionStartTime = DateTime.now().subtract(Duration(seconds: _secondsElapsed));
-      
+      _sessionStartTime =
+          DateTime.now().subtract(Duration(seconds: _secondsElapsed));
+
       await _checkConnection();
       await ForegroundService.start();
-      
+
       _lastTickTime = DateTime.now();
       _timer = Timer.periodic(
         const Duration(seconds: 1),
         (_) => _tick(),
       );
-      
+
       notifyListeners();
       return true;
     } catch (e) {
-      AppLogger.error('Erro ao restaurar sessão', tag: 'ExposureProvider', error: e);
+      AppLogger.error('Erro ao restaurar sessão',
+          tag: 'ExposureProvider', error: e);
       return false;
     }
   }

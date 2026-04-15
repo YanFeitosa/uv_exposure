@@ -37,7 +37,8 @@ void main() {
   });
 
   group('ExportService — borda', () {
-    test('exportar lista vazia de sessões deve gerar CSV com apenas header', () async {
+    test('exportar lista vazia de sessões deve gerar CSV com apenas header',
+        () async {
       final path = await ExportService.exportToCSV([]);
       final file = File(path);
       expect(file.existsSync(), isTrue);

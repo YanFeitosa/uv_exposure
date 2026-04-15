@@ -100,7 +100,8 @@ void main() {
   });
 
   group('HomeScreen — integração: iniciar monitoramento', () {
-    testWidgets('deve navegar para MonitorScreen ao selecionar e iniciar', (tester) async {
+    testWidgets('deve navegar para MonitorScreen ao selecionar e iniciar',
+        (tester) async {
       await StorageService.setDemoMode(true);
 
       await tester.pumpWidget(buildHomeScreen());

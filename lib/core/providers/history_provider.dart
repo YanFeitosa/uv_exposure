@@ -91,7 +91,7 @@ class HistoryProvider extends ChangeNotifier {
       totalDuration += session.duration;
       totalExposure += session.maxExposurePercent;
       totalUVIndex += session.maxUVIndex;
-      
+
       if (session.maxExposurePercent > maxExposure) {
         maxExposure = session.maxExposurePercent;
       }

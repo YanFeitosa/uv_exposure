@@ -16,14 +16,15 @@ class MonitorScreen extends StatefulWidget {
   State<MonitorScreen> createState() => _MonitorScreenState();
 }
 
-class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserver {
+class _MonitorScreenState extends State<MonitorScreen>
+    with WidgetsBindingObserver {
   bool _gapDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Inicia monitoramento após construção do widget
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<ExposureProvider>();
@@ -42,7 +43,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final provider = context.read<ExposureProvider>();
-    
+
     if (state == AppLifecycleState.paused) {
     } else if (state == AppLifecycleState.resumed) {
       // Reconecta ao sensor ao retomar
@@ -54,9 +55,9 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
 
   Future<bool> _onWillPop() async {
     final provider = context.read<ExposureProvider>();
-    
+
     if (!provider.isMonitoring) return true;
-    
+
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -81,7 +82,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
         );
       },
     );
-    
+
     return shouldPop ?? false;
   }
 
@@ -120,7 +121,9 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
         body: Consumer<ExposureProvider>(
           builder: (context, provider, child) {
             // Exibe diálogo de gap
-            if (provider.gapDetected && !provider.gapDismissed && !_gapDialogShown) {
+            if (provider.gapDetected &&
+                !provider.gapDismissed &&
+                !_gapDialogShown) {
               _gapDialogShown = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) _showGapDialog(provider);
@@ -143,21 +146,24 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         SizedBox(height: screenHeight * 0.02),
-                        
+
                         // Banner Modo Demo
                         if (provider.isDemoMode)
                           Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.orange.shade100,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.orange, width: 2),
+                              border:
+                                  Border.all(color: Colors.orange, width: 2),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.science, color: Colors.orange, size: 20),
+                                Icon(Icons.science,
+                                    color: Colors.orange, size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   AppStrings.demoBannerText,
@@ -170,19 +176,21 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                               ],
                             ),
                           ),
-                        
+
                         // Banner de cache
-                        if (provider.connectionStatus == ConnectionStatus.usingCache)
+                        if (provider.connectionStatus ==
+                            ConnectionStatus.usingCache)
                           _buildCacheWarningBanner(provider),
-                        
-                        if (provider.connectionError != null && 
-                            provider.connectionStatus == ConnectionStatus.disconnected)
+
+                        if (provider.connectionError != null &&
+                            provider.connectionStatus ==
+                                ConnectionStatus.disconnected)
                           _buildConnectionErrorBanner(provider),
-                        
+
                         // Alerta de monitoramento parado
                         if (provider.stoppedDueToDisconnection)
                           _buildStoppedAlert(provider),
-                        
+
                         // Caixas de informação
                         InfoBox(
                           title: AppStrings.elapsedTime,
@@ -191,38 +199,42 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                             provider.accumulatedExposurePercent,
                           ),
                         ),
-                        
+
                         SizedBox(height: screenHeight * 0.02),
-                        
+
                         InfoBox(
                           title: AppStrings.safeExposureTime,
-                          info: provider.formatTime(provider.remainingSafeExposureTime),
+                          info: provider
+                              .formatTime(provider.remainingSafeExposureTime),
                           infoColor: AppColors.getExposureColor(
                             provider.accumulatedExposurePercent,
                           ),
                         ),
-                        
+
                         SizedBox(height: screenHeight * 0.02),
-                        
+
                         InfoBox(
                           title: AppStrings.accumulatedExposure,
-                          info: '${provider.accumulatedExposurePercent.toStringAsFixed(2)} %',
+                          info:
+                              '${provider.accumulatedExposurePercent.toStringAsFixed(2)} %',
                           infoColor: AppColors.getExposureColor(
                             provider.accumulatedExposurePercent,
                           ),
                         ),
-                        
+
                         SizedBox(height: screenHeight * 0.02),
-                        
+
                         InfoBox(
                           title: AppStrings.globalUVIndex,
                           info: provider.currentUVIndex.toStringAsFixed(0),
-                          infoColor: AppColors.getUVIndexColor(provider.currentUVIndex),
-                          subtitle: _getUVIndexDescription(provider.currentUVIndex),
+                          infoColor: AppColors.getUVIndexColor(
+                              provider.currentUVIndex),
+                          subtitle:
+                              _getUVIndexDescription(provider.currentUVIndex),
                         ),
-                        
+
                         SizedBox(height: screenHeight * 0.02),
-                        
+
                         // Botão parar alarme
                         if (provider.alarmActive)
                           ElevatedButton.icon(
@@ -234,7 +246,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
                               foregroundColor: Colors.white,
                             ),
                           ),
-                          
+
                         SizedBox(height: screenHeight * 0.02),
 
                         // Botão finalizar monitoramento
@@ -339,7 +351,7 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
   Widget _buildCacheWarningBanner(ExposureProvider provider) {
     final remainingMinutes = provider.cacheTimeRemaining ~/ 60;
     final remainingSeconds = provider.cacheTimeRemaining % 60;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
@@ -390,7 +402,8 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: provider.cacheTimeRemaining / AppConstants.cacheExpiration.inSeconds,
+              value: provider.cacheTimeRemaining /
+                  AppConstants.cacheExpiration.inSeconds,
               backgroundColor: Colors.orange.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade600),
               minHeight: 6,
@@ -405,17 +418,20 @@ class _MonitorScreenState extends State<MonitorScreen> with WidgetsBindingObserv
   void _showGapDialog(ExposureProvider provider) {
     final minutes = provider.lastGapDurationSeconds ~/ 60;
     final seconds = provider.lastGapDurationSeconds % 60;
-    final durationText = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+    final durationText =
+        minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
 
     final compMinutes = provider.lastGapCompensatedSeconds ~/ 60;
     final compSeconds = provider.lastGapCompensatedSeconds % 60;
-    final compText = compMinutes > 0 ? '${compMinutes}m ${compSeconds}s' : '${compSeconds}s';
+    final compText =
+        compMinutes > 0 ? '${compMinutes}m ${compSeconds}s' : '${compSeconds}s';
 
     final body = provider.gapExceededMax
         ? AppStrings.gapDialogBodyExceeded
             .replaceAll('{duration}', durationText)
             .replaceAll('{compensated}', compText)
-            .replaceAll('{maxMinutes}', '${AppConstants.maxGapSimulationSeconds ~/ 60}')
+            .replaceAll(
+                '{maxMinutes}', '${AppConstants.maxGapSimulationSeconds ~/ 60}')
             .replaceAll('{uvIndex}', provider.gapUVIndex.toStringAsFixed(1))
         : AppStrings.gapDialogBody
             .replaceAll('{duration}', durationText)

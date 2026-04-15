@@ -108,8 +108,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      await tester.scrollUntilVisible(
-          find.text(AppStrings.endMonitoring), 200);
+      await tester.scrollUntilVisible(find.text(AppStrings.endMonitoring), 200);
       await tester.tap(find.text(AppStrings.endMonitoring));
       await tester.pumpAndSettle();
 

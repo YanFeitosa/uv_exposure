@@ -49,8 +49,7 @@ void main() {
   group('AppConstants — borda: SPF lista', () {
     test('availableSpfValues deve conter apenas valores não-negativos', () {
       for (final spf in AppConstants.availableSpfValues) {
-        expect(spf, greaterThanOrEqualTo(0),
-            reason: 'SPF $spf é negativo');
+        expect(spf, greaterThanOrEqualTo(0), reason: 'SPF $spf é negativo');
       }
     });
 

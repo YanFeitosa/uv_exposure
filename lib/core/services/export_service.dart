@@ -21,7 +21,8 @@ class ExportService {
       final end = s.endTime != null ? _formatDateTime(s.endTime!) : '';
       final durationMin = s.duration.inMinutes;
       // Escapa aspas no skinType se necessário
-      final skinType = s.skinType.contains(',') ? '"${s.skinType}"' : s.skinType;
+      final skinType =
+          s.skinType.contains(',') ? '"${s.skinType}"' : s.skinType;
 
       buffer.writeln(
         '${s.id},$start,$end,$durationMin,$skinType,${s.spf.toInt()},'

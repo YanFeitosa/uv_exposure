@@ -211,8 +211,10 @@ void main() {
         id: '1',
         startTime: DateTime(2026, 1, 1, 10, 0, 0),
         endTime: DateTime(2026, 1, 1, 11, 30, 0),
-        spf: 30, skinType: 'Tipo II - Clara',
-        maxExposurePercent: 50, maxUVIndex: 7,
+        spf: 30,
+        skinType: 'Tipo II - Clara',
+        maxExposurePercent: 50,
+        maxUVIndex: 7,
       );
       expect(session.duration, equals(const Duration(hours: 1, minutes: 30)));
     });
@@ -222,8 +224,10 @@ void main() {
         id: 'test-session-001',
         startTime: DateTime(2026, 3, 15, 10, 0, 0),
         endTime: DateTime(2026, 3, 15, 11, 0, 0),
-        spf: 50, skinType: 'Tipo III - Média Clara',
-        maxExposurePercent: 75.5, maxUVIndex: 8.5,
+        spf: 50,
+        skinType: 'Tipo III - Média Clara',
+        maxExposurePercent: 75.5,
+        maxUVIndex: 8.5,
         readings: [
           UVReading(uvIndex: 7, timestamp: DateTime(2026, 3, 15, 10, 15, 0)),
           UVReading(uvIndex: 8.5, timestamp: DateTime(2026, 3, 15, 10, 30, 0)),
@@ -238,10 +242,13 @@ void main() {
 
     test('copyWith deve preservar campos não alterados', () {
       final original = ExposureSession(
-        id: '1', startTime: DateTime(2026, 1, 1),
+        id: '1',
+        startTime: DateTime(2026, 1, 1),
         endTime: DateTime(2026, 1, 1, 1),
-        spf: 30, skinType: 'Tipo II - Clara',
-        maxExposurePercent: 50, maxUVIndex: 7,
+        spf: 30,
+        skinType: 'Tipo II - Clara',
+        maxExposurePercent: 50,
+        maxUVIndex: 7,
       );
       final modified = original.copyWith(maxExposurePercent: 80.0);
       expect(modified.id, equals(original.id));
@@ -250,14 +257,25 @@ void main() {
 
     test('toJson deve conter todas as chaves esperadas', () {
       final session = ExposureSession(
-        id: '1', startTime: DateTime(2026, 1, 1),
+        id: '1',
+        startTime: DateTime(2026, 1, 1),
         endTime: DateTime(2026, 1, 1, 1),
-        spf: 30, skinType: 'Tipo II - Clara',
-        maxExposurePercent: 50, maxUVIndex: 7,
+        spf: 30,
+        skinType: 'Tipo II - Clara',
+        maxExposurePercent: 50,
+        maxUVIndex: 7,
       );
       final json = session.toJson();
-      for (final key in ['id', 'startTime', 'endTime', 'spf', 'skinType',
-                          'maxExposurePercent', 'maxUVIndex', 'readings']) {
+      for (final key in [
+        'id',
+        'startTime',
+        'endTime',
+        'spf',
+        'skinType',
+        'maxExposurePercent',
+        'maxUVIndex',
+        'readings'
+      ]) {
         expect(json.containsKey(key), isTrue);
       }
     });

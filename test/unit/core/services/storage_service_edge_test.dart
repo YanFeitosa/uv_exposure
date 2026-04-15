@@ -47,8 +47,7 @@ void main() {
         sessions.add({
           'id': 'session-$i',
           'startTime': start.toIso8601String(),
-          'endTime':
-              start.add(const Duration(hours: 1)).toIso8601String(),
+          'endTime': start.add(const Duration(hours: 1)).toIso8601String(),
           'spf': 30.0,
           'skinType': 'Tipo II - Clara',
           'maxExposurePercent': 50.0,
@@ -68,8 +67,7 @@ void main() {
       ));
 
       final history = await StorageService.getExposureHistory();
-      expect(
-          history.length, lessThanOrEqualTo(AppConstants.maxHistoryEntries));
+      expect(history.length, lessThanOrEqualTo(AppConstants.maxHistoryEntries));
       expect(history.any((s) => s.id == 'trigger-truncation'), isTrue);
     }, timeout: Timeout(Duration(minutes: 1)));
 

@@ -49,7 +49,8 @@ class AppConstants {
   static const String cacheKeyDefaultSpf = 'user_default_spf';
   static const String cacheKeyDefaultSkinType = 'user_default_skin_type';
   static const Duration cacheExpiration = Duration(minutes: 5);
-  static const String cacheKeyNotificationPermission = 'notification_permission_asked';
+  static const String cacheKeyNotificationPermission =
+      'notification_permission_asked';
   static const String cacheKeyDemoMode = 'demo_mode_enabled';
   static const String cacheKeySoundAlarm = 'sound_alarm_enabled';
 

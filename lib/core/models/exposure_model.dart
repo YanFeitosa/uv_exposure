@@ -11,14 +11,14 @@ class UVReading {
   });
 
   Map<String, dynamic> toJson() => {
-    'uvIndex': uvIndex,
-    'timestamp': timestamp.toIso8601String(),
-  };
+        'uvIndex': uvIndex,
+        'timestamp': timestamp.toIso8601String(),
+      };
 
   factory UVReading.fromJson(Map<String, dynamic> json) => UVReading(
-    uvIndex: (json['uvIndex'] as num).toDouble(),
-    timestamp: DateTime.parse(json['timestamp'] as String),
-  );
+        uvIndex: (json['uvIndex'] as num).toDouble(),
+        timestamp: DateTime.parse(json['timestamp'] as String),
+      );
 }
 
 /// Modelo de dados para uma sessão completa de exposição UV
@@ -71,15 +71,15 @@ class ExposureSession {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'startTime': startTime.toIso8601String(),
-    'endTime': endTime?.toIso8601String(),
-    'spf': spf,
-    'skinType': skinType,
-    'maxExposurePercent': maxExposurePercent,
-    'maxUVIndex': maxUVIndex,
-    'readings': readings.map((r) => r.toJson()).toList(),
-  };
+        'id': id,
+        'startTime': startTime.toIso8601String(),
+        'endTime': endTime?.toIso8601String(),
+        'spf': spf,
+        'skinType': skinType,
+        'maxExposurePercent': maxExposurePercent,
+        'maxUVIndex': maxUVIndex,
+        'readings': readings.map((r) => r.toJson()).toList(),
+      };
 
   factory ExposureSession.fromJson(Map<String, dynamic> json) {
     try {
@@ -93,18 +93,20 @@ class ExposureSession {
             : null,
         spf: (json['spf'] as num?)?.toDouble() ?? 0.0,
         skinType: (json['skinType'] as String?) ?? 'Tipo II - Clara',
-        maxExposurePercent: (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
+        maxExposurePercent:
+            (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
         maxUVIndex: (json['maxUVIndex'] as num?)?.toDouble() ?? 0.0,
         readings: (json['readings'] as List<dynamic>?)
-            ?.map((r) {
-              try {
-                return UVReading.fromJson(r as Map<String, dynamic>);
-              } catch (_) {
-                return null;
-              }
-            })
-            .whereType<UVReading>()
-            .toList() ?? [],
+                ?.map((r) {
+                  try {
+                    return UVReading.fromJson(r as Map<String, dynamic>);
+                  } catch (_) {
+                    return null;
+                  }
+                })
+                .whereType<UVReading>()
+                .toList() ??
+            [],
       );
     } catch (e) {
       return ExposureSession(
@@ -146,7 +148,7 @@ class ExposureModel {
   double get accumulatedExposurePercent => _accumulatedExposurePercent;
 
   /// Calcula o tempo inicial de exposição segura baseado no índice UV atual
-  /// 
+  ///
   /// Retorna o tempo em segundos: (SPF × TEP) / UV
   int calculateInitialSafeExposureTime(double uvIndex) {
     if (uvIndex <= 0) uvIndex = 1;
@@ -155,18 +157,20 @@ class ExposureModel {
   }
 
   /// Acumula a exposição UV proporcionalmente ao índice UV e tempo decorrido
-  /// 
+  ///
   /// uvIndex - Índice UV atual do sensor
   /// timeSeconds - Intervalo de tempo em segundos (normalmente 1)
   void accumulateExposure(double uvIndex, int timeSeconds) {
     if (uvIndex <= 0) return;
-    _accumulatedExposurePercent += ((uvIndex * timeSeconds) / (_tep * _spf * 60)) * 100;
+    _accumulatedExposurePercent +=
+        ((uvIndex * timeSeconds) / (_tep * _spf * 60)) * 100;
   }
 
   /// Calcula o tempo total de exposição segura estimado
   /// Retorna estimativa do tempo total seguro em segundos
   int calculateSafeExposureTime(int secondsElapsed) {
-    if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold) return 0;
+    if (_accumulatedExposurePercent <= AppConstants.minExposureThreshold)
+      return 0;
     return ((secondsElapsed * 100) / _accumulatedExposurePercent).toInt();
   }
 
@@ -178,10 +182,12 @@ class ExposureModel {
   }
 
   /// Verifica se a exposição atingiu o limite crítico
-  bool get isCritical => _accumulatedExposurePercent >= AppConstants.exposureCriticalThreshold;
+  bool get isCritical =>
+      _accumulatedExposurePercent >= AppConstants.exposureCriticalThreshold;
 
   /// Verifica se a exposição atingiu o limite de aviso
-  bool get isWarning => _accumulatedExposurePercent >= AppConstants.exposureWarningThreshold;
+  bool get isWarning =>
+      _accumulatedExposurePercent >= AppConstants.exposureWarningThreshold;
 
   /// Reseta a exposição acumulada para zero
   void reset() {

@@ -158,8 +158,7 @@ void main() {
       await provider.stopMonitoring();
     });
 
-    testWidgets('deve exibir diálogo de gap com exceeded max',
-        (tester) async {
+    testWidgets('deve exibir diálogo de gap com exceeded max', (tester) async {
       final provider = ExposureProvider();
       provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
       provider.setDemoMode(true);

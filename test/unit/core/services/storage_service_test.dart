@@ -95,7 +95,8 @@ void main() {
     });
 
     test('deve salvar e recuperar uma sessão', () async {
-      final session = _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15, 10));
+      final session =
+          _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15, 10));
       await StorageService.saveExposureSession(session);
 
       final history = await StorageService.getExposureHistory();
@@ -127,8 +128,10 @@ void main() {
         id: 'with-readings',
         startTime: DateTime(2026, 3, 15, 10),
         endTime: DateTime(2026, 3, 15, 11),
-        spf: 30, skinType: 'Tipo II - Clara',
-        maxExposurePercent: 60, maxUVIndex: 8,
+        spf: 30,
+        skinType: 'Tipo II - Clara',
+        maxExposurePercent: 60,
+        maxUVIndex: 8,
         readings: [
           UVReading(uvIndex: 7, timestamp: DateTime(2026, 3, 15, 10, 15)),
           UVReading(uvIndex: 8, timestamp: DateTime(2026, 3, 15, 10, 30)),
@@ -150,22 +153,32 @@ void main() {
           id: 'today-1',
           startTime: now.subtract(const Duration(minutes: 5)),
           endTime: now.subtract(const Duration(minutes: 4)),
-          spf: 30, skinType: 'Tipo II - Clara',
-          maxExposurePercent: 40, maxUVIndex: 5,
+          spf: 30,
+          skinType: 'Tipo II - Clara',
+          maxExposurePercent: 40,
+          maxUVIndex: 5,
         ),
         ExposureSession(
           id: 'yesterday-1',
           startTime: now.subtract(const Duration(days: 1)),
-          endTime: now.subtract(const Duration(days: 1)).add(const Duration(hours: 1)),
-          spf: 30, skinType: 'Tipo II - Clara',
-          maxExposurePercent: 60, maxUVIndex: 7,
+          endTime: now
+              .subtract(const Duration(days: 1))
+              .add(const Duration(hours: 1)),
+          spf: 30,
+          skinType: 'Tipo II - Clara',
+          maxExposurePercent: 60,
+          maxUVIndex: 7,
         ),
         ExposureSession(
           id: 'old-1',
           startTime: now.subtract(const Duration(days: 10)),
-          endTime: now.subtract(const Duration(days: 10)).add(const Duration(hours: 1)),
-          spf: 30, skinType: 'Tipo II - Clara',
-          maxExposurePercent: 80, maxUVIndex: 9,
+          endTime: now
+              .subtract(const Duration(days: 10))
+              .add(const Duration(hours: 1)),
+          spf: 30,
+          skinType: 'Tipo II - Clara',
+          maxExposurePercent: 80,
+          maxUVIndex: 9,
         ),
       ];
       for (final s in sessions) {
@@ -179,7 +192,8 @@ void main() {
       expect(today.first.id, equals('today-1'));
     });
 
-    test('getSessionsLastDays(3) deve retornar sessões de hoje e ontem', () async {
+    test('getSessionsLastDays(3) deve retornar sessões de hoje e ontem',
+        () async {
       final recent = await StorageService.getSessionsLastDays(3);
       expect(recent.length, equals(2));
     });
@@ -221,7 +235,8 @@ void main() {
     });
 
     test('deve salvar e recuperar fototipo padrão', () async {
-      await StorageService.saveUserPreferences(defaultSkinType: 'Tipo III - Média Clara');
+      await StorageService.saveUserPreferences(
+          defaultSkinType: 'Tipo III - Média Clara');
       final prefs = await StorageService.getUserPreferences();
       expect(prefs['defaultSkinType'], equals('Tipo III - Média Clara'));
     });

@@ -96,9 +96,9 @@ void main() {
     });
 
     test('exposição progressiva deve transicionar verde→amarelo→vermelho', () {
-      final c0 = AppColors.getExposureColor(0);     // verde
-      final c50 = AppColors.getExposureColor(50);    // amarelo
-      final c100 = AppColors.getExposureColor(100);  // vermelho
+      final c0 = AppColors.getExposureColor(0); // verde
+      final c50 = AppColors.getExposureColor(50); // amarelo
+      final c100 = AppColors.getExposureColor(100); // vermelho
 
       // Verde → Amarelo: componente vermelho deve aumentar
       expect(c50.red, greaterThan(c0.red),

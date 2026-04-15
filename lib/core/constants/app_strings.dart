@@ -16,7 +16,8 @@ class AppStrings {
   static const String settings = 'Configurações';
   static const String demoModeLabel = 'Modo Demo (dados UV simulados)';
   static const String soundAlarmLabel = 'Alarme sonoro de exposição';
-  static const String soundAlarmDescription = 'Toca sirene ao atingir 100% de exposição';
+  static const String soundAlarmDescription =
+      'Toca sirene ao atingir 100% de exposição';
 
   // Popup de fototipo (primeira abertura)
   static const String skinTypePopupTitle = 'Selecione seu Fototipo de Pele';
@@ -28,7 +29,8 @@ class AppStrings {
 
   // Popup de iniciar monitoramento
   static const String startMonitoringTitle = 'Iniciar Monitoramento';
-  static const String selectSpfMessage = 'Selecione o fator de proteção solar que está usando:';
+  static const String selectSpfMessage =
+      'Selecione o fator de proteção solar que está usando:';
   static const String start = 'Iniciar';
 
   // Tela de Monitoramento
@@ -38,12 +40,14 @@ class AppStrings {
   static const String globalUVIndex = 'Índice UV Global';
   static const String confirm = 'Confirmar';
   static const String cancel = 'Cancelar';
-  static const String confirmBackMessage = 'O monitoramento será reiniciado. Tem certeza que deseja voltar?';
+  static const String confirmBackMessage =
+      'O monitoramento será reiniciado. Tem certeza que deseja voltar?';
   static const String stopAlarm = 'Parar Alarme';
   static const String demoBannerText = 'MODO DEMO — Dados UV simulados';
   static const String monitoringPaused = 'Monitoramento Pausado';
   static const String retryReconnect = 'Tentar Reconectar';
-  static const String connectionLostUsingCache = 'Conexão perdida - Usando cache';
+  static const String connectionLostUsingCache =
+      'Conexão perdida - Usando cache';
 
   // Descrições de Índice UV (escala OMS)
   static const String uvLow = 'Baixo';
@@ -58,9 +62,11 @@ class AppStrings {
   static const String connecting = 'Conectando';
   static const String cached = 'Cache';
   static const String offline = 'Offline';
-  static const String deviceNotFound = 'Dispositivo não encontrado. Verifique se está conectado à mesma rede WiFi do dispositivo SunSense.';
+  static const String deviceNotFound =
+      'Dispositivo não encontrado. Verifique se está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String retryConnection = 'Tentar reconectar';
-  static const String cachedDataMessage = 'Usando dados em cache. Dispositivo inacessível.';
+  static const String cachedDataMessage =
+      'Usando dados em cache. Dispositivo inacessível.';
 
   // Diálogo de Permissão de Notificação
   static const String notificationsDialogTitle = 'Notificações';
@@ -86,17 +92,20 @@ class AppStrings {
     'Tipo VI - Muito Escura',
   ];
 
-  // Valores de FPS 
+  // Valores de FPS
   static const List<String> spfValues = ['0', '15', '30', '50', '70'];
 
   // Notificações
   static const String notificationChannelId = 'uv_exposure_alerts';
   static const String notificationChannelName = 'Alertas de Exposição UV';
-  static const String notificationChannelDescription = 'Alertas de níveis de exposição UV';
+  static const String notificationChannelDescription =
+      'Alertas de níveis de exposição UV';
   static const String exposureWarningTitle = 'Aviso de Exposição UV';
   static const String exposureCriticalTitle = 'Exposição UV Crítica!';
-  static const String exposureWarningBody = 'Você atingiu {percent}% do tempo seguro de exposição.';
-  static const String exposureCriticalBody = 'Procure sombra imediatamente! Exposição máxima segura atingida.';
+  static const String exposureWarningBody =
+      'Você atingiu {percent}% do tempo seguro de exposição.';
+  static const String exposureCriticalBody =
+      'Procure sombra imediatamente! Exposição máxima segura atingida.';
 
   // Notificações de Conexão/Cache
   static const String cacheNotificationTitle = 'Conexão Perdida com o Sensor';

@@ -125,7 +125,8 @@ void main() {
         async.flushMicrotasks();
 
         // _checkConnection falhou → deve ser disconnected
-        expect(provider.connectionStatus, equals(ConnectionStatus.disconnected));
+        expect(
+            provider.connectionStatus, equals(ConnectionStatus.disconnected));
 
         // Avança além do dataFetchInterval para disparar _fetchUVData
         async.elapse(const Duration(seconds: 6));

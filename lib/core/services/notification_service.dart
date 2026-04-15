@@ -15,7 +15,7 @@ class NotificationService {
 
   /// Verifica se as notificações estão habilitadas
   static bool get isEnabled => _isInitialized && _permissionGranted;
-  
+
   /// Verifica se está em plataforma suportada (não-web)
   static bool get _isSupported => !kIsWeb;
 
@@ -23,11 +23,12 @@ class NotificationService {
   static Future<bool> init() async {
     // Não inicializa em plataforma web
     if (!_isSupported) return false;
-    
+
     if (_isInitialized) return true;
 
     try {
-      const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
+      const androidSettings =
+          AndroidInitializationSettings('@drawable/ic_notification');
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -43,7 +44,7 @@ class NotificationService {
         initSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
-      
+
       if (initialized != true) {
         AppLogger.warning('Falha na inicialização', tag: 'NotificationService');
         return false;
@@ -51,11 +52,12 @@ class NotificationService {
 
       // Cria canal de notificação Android (obrigatório para Android 8+)
       await _createNotificationChannel();
-      
+
       _isInitialized = true;
       return true;
     } catch (e) {
-      AppLogger.error('Erro na inicialização', tag: 'NotificationService', error: e);
+      AppLogger.error('Erro na inicialização',
+          tag: 'NotificationService', error: e);
       return false;
     }
   }
@@ -77,34 +79,35 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    AppLogger.debug('Notificação tocada: ${response.payload}', tag: 'NotificationService');
+    AppLogger.debug('Notificação tocada: ${response.payload}',
+        tag: 'NotificationService');
     // Pode ser usado para navegação ao tocar na notificação
   }
 
   /// Solicita permissão para enviar notificações
   static Future<bool> requestPermission() async {
     if (!_isSupported) return false;
-    
+
     if (!_isInitialized) {
       final initialized = await init();
       if (!initialized) return false;
     }
-    
+
     try {
       bool granted = false;
-      
+
       // Android 13+ requer permissão explícita
       if (!kIsWeb && Platform.isAndroid) {
         final android = _notifications.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
-        
+
         if (android != null) {
           final areEnabled = await android.areNotificationsEnabled();
           if (areEnabled == true) {
             _permissionGranted = true;
             return true;
           }
-          
+
           // Solicita permissão
           granted = await android.requestNotificationsPermission() ?? false;
         }
@@ -113,33 +116,36 @@ class NotificationService {
       else if (!kIsWeb && Platform.isIOS) {
         final ios = _notifications.resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
-        
+
         if (ios != null) {
           granted = await ios.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          ) ?? false;
+                alert: true,
+                badge: true,
+                sound: true,
+              ) ??
+              false;
         }
       }
       // Outras plataformas — permissão assumida
       else {
         granted = true;
       }
-      
+
       _permissionGranted = granted;
-      AppLogger.info('Permissão ${granted ? "concedida" : "negada"}', tag: 'NotificationService');
+      AppLogger.info('Permissão ${granted ? "concedida" : "negada"}',
+          tag: 'NotificationService');
       return granted;
     } catch (e) {
-      AppLogger.error('Erro ao solicitar permissão', tag: 'NotificationService', error: e);
+      AppLogger.error('Erro ao solicitar permissão',
+          tag: 'NotificationService', error: e);
       return false;
     }
   }
-  
+
   /// Verifica se as notificações estão habilitadas no sistema
   static Future<bool> areNotificationsEnabled() async {
     if (!_isSupported || !_isInitialized) return false;
-    
+
     try {
       if (!kIsWeb && Platform.isAndroid) {
         final android = _notifications.resolvePlatformSpecificImplementation<
@@ -345,7 +351,8 @@ class NotificationService {
     final seconds = gapSeconds % 60;
     final durationStr = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
 
-    final body = AppStrings.gapNotificationBody.replaceAll('{minutes}', durationStr);
+    final body =
+        AppStrings.gapNotificationBody.replaceAll('{minutes}', durationStr);
 
     await _notifications.show(
       AppConstants.notificationGapId,

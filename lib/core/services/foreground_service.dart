@@ -72,7 +72,8 @@ class ForegroundService {
 
       AppLogger.info('start result = $result', tag: 'ForegroundService');
     } catch (e) {
-      AppLogger.error('Erro ao iniciar serviço', tag: 'ForegroundService', error: e);
+      AppLogger.error('Erro ao iniciar serviço',
+          tag: 'ForegroundService', error: e);
     }
   }
 
@@ -94,7 +95,8 @@ class ForegroundService {
       );
     } catch (e) {
       // Silencia erros de atualização
-      AppLogger.warning('Erro ao atualizar notificação', tag: 'ForegroundService', error: e);
+      AppLogger.warning('Erro ao atualizar notificação',
+          tag: 'ForegroundService', error: e);
     }
   }
 
@@ -109,7 +111,8 @@ class ForegroundService {
       await FlutterForegroundTask.stopService();
       AppLogger.info('Serviço parado', tag: 'ForegroundService');
     } catch (e) {
-      AppLogger.error('Erro ao parar serviço', tag: 'ForegroundService', error: e);
+      AppLogger.error('Erro ao parar serviço',
+          tag: 'ForegroundService', error: e);
     }
   }
 
@@ -129,7 +132,8 @@ class ForegroundService {
     try {
       return await FlutterForegroundTask.requestIgnoreBatteryOptimization();
     } catch (e) {
-      AppLogger.error('Erro ao solicitar economia de bateria', tag: 'ForegroundService', error: e);
+      AppLogger.error('Erro ao solicitar economia de bateria',
+          tag: 'ForegroundService', error: e);
       return false;
     }
   }
@@ -138,9 +142,11 @@ class ForegroundService {
   static Future<bool> openBatteryOptimizationSettings() async {
     if (!_isSupported) return false;
     try {
-      return await FlutterForegroundTask.openIgnoreBatteryOptimizationSettings();
+      return await FlutterForegroundTask
+          .openIgnoreBatteryOptimizationSettings();
     } catch (e) {
-      AppLogger.error('Erro ao abrir configurações', tag: 'ForegroundService', error: e);
+      AppLogger.error('Erro ao abrir configurações',
+          tag: 'ForegroundService', error: e);
       return false;
     }
   }
@@ -164,6 +170,7 @@ class _NoOpTaskHandler extends TaskHandler {
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    AppLogger.info('TaskHandler: onDestroy (isTimeout: $isTimeout)', tag: 'ForegroundService');
+    AppLogger.info('TaskHandler: onDestroy (isTimeout: $isTimeout)',
+        tag: 'ForegroundService');
   }
 }

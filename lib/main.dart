@@ -15,23 +15,25 @@ import 'features/about/about_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inicializa serviços essenciais
   try {
     await StorageService.init();
   } catch (e) {
-    AppLogger.error('Falha ao inicializar StorageService', tag: 'Main', error: e);
+    AppLogger.error('Falha ao inicializar StorageService',
+        tag: 'Main', error: e);
   }
-  
+
   // Inicializa notificações (permissão será pedida na HomeScreen)
   if (!kIsWeb) {
     try {
       await NotificationService.init();
     } catch (e) {
-      AppLogger.error('Falha ao inicializar NotificationService', tag: 'Main', error: e);
+      AppLogger.error('Falha ao inicializar NotificationService',
+          tag: 'Main', error: e);
     }
   }
-  
+
   runApp(const MyApp());
 }
 

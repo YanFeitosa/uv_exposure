@@ -30,7 +30,8 @@ void main() {
     UVDataService.restoreHttpClient();
   });
 
-  http.Response jsonResponse(Map<String, dynamic> body, {int statusCode = 200}) {
+  http.Response jsonResponse(Map<String, dynamic> body,
+      {int statusCode = 200}) {
     return http.Response(jsonEncode(body), statusCode);
   }
 
@@ -65,8 +66,11 @@ void main() {
       final before = DateTime.now();
       final data = UVData.fromJson({'uv_index': 5.0});
       final after = DateTime.now();
-      expect(data.timestamp.isAfter(before.subtract(const Duration(seconds: 1))), isTrue);
-      expect(data.timestamp.isBefore(after.add(const Duration(seconds: 1))), isTrue);
+      expect(
+          data.timestamp.isAfter(before.subtract(const Duration(seconds: 1))),
+          isTrue);
+      expect(data.timestamp.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue);
     });
 
     test('isFromCache deve ser false por padrão', () {

@@ -20,8 +20,7 @@ void main() {
     test('valores de TEP devem ser positivos e crescentes por fototipo', () {
       final teps = AppConstants.tepBySkinType.values.toList();
       for (final tep in teps) {
-        expect(tep, greaterThan(0),
-            reason: 'TEP deve ser positivo: $tep');
+        expect(tep, greaterThan(0), reason: 'TEP deve ser positivo: $tep');
       }
     });
 

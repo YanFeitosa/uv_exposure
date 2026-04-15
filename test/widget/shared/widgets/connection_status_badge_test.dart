@@ -39,8 +39,7 @@ void main() {
   }
 
   group('ConnectionStatusBadge', () {
-    testWidgets('deve exibir "Desconectado" no estado inicial',
-        (tester) async {
+    testWidgets('deve exibir "Desconectado" no estado inicial', (tester) async {
       final provider = ExposureProvider();
       provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
 

@@ -43,7 +43,8 @@ void _printUsage() {
   print('Usage:');
   print('  dart run tool/test_query.dart tags              # show all tags');
   print('  dart run tool/test_query.dart list --tag edge    # files with tag');
-  print('  dart run tool/test_query.dart list --untagged    # files without tags');
+  print(
+      '  dart run tool/test_query.dart list --untagged    # files without tags');
 }
 
 void _showTags(List<String> files, String root) {

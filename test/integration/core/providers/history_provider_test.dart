@@ -46,10 +46,12 @@ void main() {
 
     test('deve carregar sessões do storage', () async {
       await StorageService.saveExposureSession(_makeSession(
-        id: 's1', startTime: DateTime(2026, 3, 10, 10),
+        id: 's1',
+        startTime: DateTime(2026, 3, 10, 10),
       ));
       await StorageService.saveExposureSession(_makeSession(
-        id: 's2', startTime: DateTime(2026, 3, 15, 14),
+        id: 's2',
+        startTime: DateTime(2026, 3, 15, 14),
       ));
 
       final provider = HistoryProvider();
@@ -60,10 +62,12 @@ void main() {
 
     test('deve ordenar sessões por data (mais recente primeiro)', () async {
       await StorageService.saveExposureSession(_makeSession(
-        id: 'old', startTime: DateTime(2026, 1, 1),
+        id: 'old',
+        startTime: DateTime(2026, 1, 1),
       ));
       await StorageService.saveExposureSession(_makeSession(
-        id: 'new', startTime: DateTime(2026, 6, 1),
+        id: 'new',
+        startTime: DateTime(2026, 6, 1),
       ));
 
       final provider = HistoryProvider();
@@ -113,7 +117,8 @@ void main() {
   group('HistoryProvider — integração: clearHistory', () {
     test('deve limpar todas as sessões', () async {
       await StorageService.saveExposureSession(_makeSession(
-        id: 's1', startTime: DateTime(2026, 3, 15),
+        id: 's1',
+        startTime: DateTime(2026, 3, 15),
       ));
 
       final provider = HistoryProvider();
@@ -127,7 +132,8 @@ void main() {
 
     test('deve persistir a limpeza no storage', () async {
       await StorageService.saveExposureSession(_makeSession(
-        id: 's1', startTime: DateTime(2026, 3, 15),
+        id: 's1',
+        startTime: DateTime(2026, 3, 15),
       ));
 
       final provider = HistoryProvider();

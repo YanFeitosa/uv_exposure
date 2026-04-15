@@ -126,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
   Future<void> _checkPendingSession() async {
     final lastSession = await StorageService.getLastSession();
     if (lastSession == null) return;
@@ -205,8 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final hasPermission = await NotificationService.areNotificationsEnabled();
     if (hasPermission) return;
 
-    final alreadyAsked =
-        await StorageService.wasNotificationPermissionAsked();
+    final alreadyAsked = await StorageService.wasNotificationPermissionAsked();
     if (alreadyAsked) return;
 
     await Future.delayed(const Duration(milliseconds: 500));

@@ -45,7 +45,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${AppStrings.exportSuccess}\n${AppStrings.exportFileSaved} $path'),
+          content: Text(
+              '${AppStrings.exportSuccess}\n${AppStrings.exportFileSaved} $path'),
           duration: const Duration(seconds: 4),
         ),
       );
@@ -101,7 +102,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             itemBuilder: (context) => [
               const PopupMenuItem(value: 1, child: Text(AppStrings.today)),
               const PopupMenuItem(value: 7, child: Text(AppStrings.last7Days)),
-              const PopupMenuItem(value: 30, child: Text(AppStrings.last30Days)),
+              const PopupMenuItem(
+                  value: 30, child: Text(AppStrings.last30Days)),
             ],
           ),
         ],
@@ -117,7 +119,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                  Icon(Icons.error_outline,
+                      size: 64, color: Colors.red.shade300),
                   const SizedBox(height: 16),
                   Text(provider.error!),
                   const SizedBox(height: 16),
@@ -156,14 +159,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 // Cards de estatísticas
                 _buildStatisticsSection(stats),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Gráfico de barras
                 _buildChartSection(chartData),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Lista de sessões
                 _buildSessionList(provider.sessions),
               ],
@@ -181,8 +184,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         Text(
           AppStrings.statistics,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -232,10 +235,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
     // Cor de contraste para o card
     final displayColor = color == AppColors.secondary ? Colors.white : color;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -273,8 +277,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         Text(
           AppStrings.dailyExposure,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -327,8 +331,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     },
                   ),
                 ),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
               borderData: FlBorderData(show: false),
               gridData: FlGridData(
@@ -377,8 +383,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
         Text(
           AppStrings.sessions,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         ListView.builder(
@@ -399,7 +405,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.getExposureColor(session.maxExposurePercent),
+          backgroundColor:
+              AppColors.getExposureColor(session.maxExposurePercent),
           child: Text(
             '${session.maxExposurePercent.toStringAsFixed(0)}%',
             style: const TextStyle(
@@ -446,14 +453,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
       dateStr = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
     }
 
-    final time = '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final time =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     return '$dateStr ${AppStrings.atTime} $time';
   }
 
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     }

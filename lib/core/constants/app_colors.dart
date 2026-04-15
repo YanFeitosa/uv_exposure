@@ -13,11 +13,11 @@ class AppColors {
   static const Color error = Color(0xFFE53935);
 
   // Cores da escala UV (OMS)
-  static const Color uvLow = Colors.green;           // 0-2
-  static const Color uvModerate = Colors.yellow;     // 3-5
-  static const Color uvHigh = Colors.orange;         // 6-7
-  static const Color uvVeryHigh = Colors.red;        // 8-10
-  static const Color uvExtreme = Colors.purple;      // 11+
+  static const Color uvLow = Colors.green; // 0-2
+  static const Color uvModerate = Colors.yellow; // 3-5
+  static const Color uvHigh = Colors.orange; // 6-7
+  static const Color uvVeryHigh = Colors.red; // 8-10
+  static const Color uvExtreme = Colors.purple; // 11+
 
   // Cores de nível de exposição
   static const Color exposureSafe = Colors.green;
@@ -52,6 +52,7 @@ class AppColors {
     if (exposurePercent <= 50) {
       return Color.lerp(exposureSafe, exposureWarning, exposurePercent / 50)!;
     }
-    return Color.lerp(exposureWarning, exposureDanger, (exposurePercent - 50) / 50)!;
+    return Color.lerp(
+        exposureWarning, exposureDanger, (exposurePercent - 50) / 50)!;
   }
 }

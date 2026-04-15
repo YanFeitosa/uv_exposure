@@ -120,7 +120,8 @@ void main() {
       expect(history.first.skinType, equals('Tipo II - Clara'));
     });
 
-    test('restoreLastSession deve retornar false quando não há sessão salva', () async {
+    test('restoreLastSession deve retornar false quando não há sessão salva',
+        () async {
       final provider = ExposureProvider();
       addTearDown(() => provider.dispose());
       provider.initialize(spf: 30, skinType: 'Tipo II - Clara');

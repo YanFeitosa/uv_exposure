@@ -46,9 +46,9 @@ class UVData {
   }
 
   Map<String, dynamic> toJson() => {
-    'uvIndex': uvIndex,
-    'timestamp': timestamp.toIso8601String(),
-  };
+        'uvIndex': uvIndex,
+        'timestamp': timestamp.toIso8601String(),
+      };
 }
 
 /// Exceção para erros na obtenção de dados UV
@@ -98,22 +98,21 @@ class UVDataService {
 
     for (final url in urls) {
       try {
-        final response = await _httpClient
-            .get(url, headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            })
-            .timeout(AppConstants.httpTimeout);
+        final response = await _httpClient.get(url, headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }).timeout(AppConstants.httpTimeout);
 
         if (response.statusCode == 200) {
           final jsonResponse = json.decode(response.body);
-          
+
           final data = UVData.fromJson(jsonResponse);
           _cacheData(data);
-          
+
           // Memoriza URL que funcionou
-          _useFallbackIp = url.toString().contains(AppConstants.deviceFallbackIp);
-          
+          _useFallbackIp =
+              url.toString().contains(AppConstants.deviceFallbackIp);
+
           return data;
         } else {
           lastError = UVDataException(
@@ -122,7 +121,8 @@ class UVDataService {
           );
         }
       } catch (e) {
-        AppLogger.warning('Falha ao buscar de $url', tag: 'UVDataService', error: e);
+        AppLogger.warning('Falha ao buscar de $url',
+            tag: 'UVDataService', error: e);
         lastError = e is Exception ? e : Exception(e.toString());
       }
     }
@@ -140,11 +140,13 @@ class UVDataService {
   }
 
   static Uri _getMdnsUrl() {
-    return Uri.parse('${AppConstants.deviceBaseUrl}${AppConstants.deviceDataEndpoint}');
+    return Uri.parse(
+        '${AppConstants.deviceBaseUrl}${AppConstants.deviceDataEndpoint}');
   }
 
   static Uri _getFallbackUrl() {
-    return Uri.parse('http://${AppConstants.deviceFallbackIp}${AppConstants.deviceDataEndpoint}');
+    return Uri.parse(
+        'http://${AppConstants.deviceFallbackIp}${AppConstants.deviceDataEndpoint}');
   }
 
   static void _cacheData(UVData data) {
@@ -155,14 +157,14 @@ class UVDataService {
   /// Retorna dados do cache em memória se válidos
   static UVData? getCachedData() {
     if (_cachedData == null || _cacheTime == null) return null;
-    
+
     final age = DateTime.now().difference(_cacheTime!);
     if (age > AppConstants.cacheExpiration) {
       _cachedData = null;
       _cacheTime = null;
       return null;
     }
-    
+
     return _cachedData;
   }
 
@@ -177,8 +179,10 @@ class UVDataService {
             .timeout(AppConstants.connectionCheckTimeout);
 
         if (response.statusCode == 200) {
-          _useFallbackIp = url.toString().contains(AppConstants.deviceFallbackIp);
-          AppLogger.info('Dispositivo acessível via $url', tag: 'UVDataService');
+          _useFallbackIp =
+              url.toString().contains(AppConstants.deviceFallbackIp);
+          AppLogger.info('Dispositivo acessível via $url',
+              tag: 'UVDataService');
           return true;
         } else {
           AppLogger.warning(
@@ -193,15 +197,19 @@ class UVDataService {
           tag: 'UVDataService',
         );
       } on http.ClientException catch (e) {
-        AppLogger.warning('Erro de cliente HTTP em $url: ${e.message}', tag: 'UVDataService');
+        AppLogger.warning('Erro de cliente HTTP em $url: ${e.message}',
+            tag: 'UVDataService');
       } on FormatException catch (e) {
-        AppLogger.warning('URL malformada $url: ${e.message}', tag: 'UVDataService');
+        AppLogger.warning('URL malformada $url: ${e.message}',
+            tag: 'UVDataService');
       } catch (e) {
-        AppLogger.error('Erro inesperado ao verificar $url', tag: 'UVDataService', error: e);
+        AppLogger.error('Erro inesperado ao verificar $url',
+            tag: 'UVDataService', error: e);
       }
     }
 
-    AppLogger.warning('Dispositivo inacessível em todas as URLs', tag: 'UVDataService');
+    AppLogger.warning('Dispositivo inacessível em todas as URLs',
+        tag: 'UVDataService');
     return false;
   }
 

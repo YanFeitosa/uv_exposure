@@ -122,8 +122,7 @@ void main() {
 
       provider.setTestState(
         connectionStatus: ConnectionStatus.usingCache,
-        disconnectedSince:
-            DateTime.now().subtract(const Duration(seconds: 30)),
+        disconnectedSince: DateTime.now().subtract(const Duration(seconds: 30)),
       );
       await tester.pump();
 

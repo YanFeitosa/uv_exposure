@@ -37,8 +37,10 @@ class AppLogger {
   }
 
   /// Log de nível error (falha que requer atenção)
-  static void error(String message, {String? tag, Object? error, StackTrace? stackTrace}) {
-    _log(LogLevel.error, message, tag: tag, error: error, stackTrace: stackTrace);
+  static void error(String message,
+      {String? tag, Object? error, StackTrace? stackTrace}) {
+    _log(LogLevel.error, message,
+        tag: tag, error: error, stackTrace: stackTrace);
   }
 
   static void _log(

@@ -35,8 +35,7 @@ void main() {
 
     test('UV negativo deve retornar tempo máximo (tratado como UV mínimo)', () {
       final model = ExposureModel(spf: 30, skinType: 'Tipo II - Clara');
-      expect(
-          model.calculateInitialSafeExposureTime(-3.0), greaterThan(0));
+      expect(model.calculateInitialSafeExposureTime(-3.0), greaterThan(0));
     });
 
     test('UV muito alto (15+) deve retornar tempo muito curto', () {
@@ -66,8 +65,8 @@ void main() {
         model.accumulateExposure(5.0, 1);
       }
       final expected = (5.0 * 3600) / (15.0 * 30.0 * 60.0) * 100;
-      expect(
-          model.accumulatedExposurePercent, closeTo(expected, expected * 0.001));
+      expect(model.accumulatedExposurePercent,
+          closeTo(expected, expected * 0.001));
     });
   });
 
@@ -111,7 +110,9 @@ void main() {
   });
 
   group('ExposureModel — borda: remainingSafeTime', () {
-    test('nenhuma exposição acumulada e 0s elapsed retorna 0 (baseado no elapsed)', () {
+    test(
+        'nenhuma exposição acumulada e 0s elapsed retorna 0 (baseado no elapsed)',
+        () {
       final model = ExposureModel(spf: 30, skinType: 'Tipo II - Clara');
       expect(model.calculateRemainingSafeTime(0), greaterThanOrEqualTo(0));
     });
