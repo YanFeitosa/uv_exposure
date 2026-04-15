@@ -50,7 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              icon: const Icon(Icons.wb_sunny, color: AppColors.primary, size: 36),
+              icon: const Icon(Icons.wb_sunny,
+                  color: AppColors.primary, size: 36),
               title: const Text(AppStrings.sessionConfigTitle),
               content: Column(
                 mainAxisSize: MainAxisSize.min,

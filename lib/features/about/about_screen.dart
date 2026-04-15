@@ -48,7 +48,8 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.secondary),
+                        const Icon(Icons.info_outline,
+                            color: AppColors.secondary),
                         const SizedBox(width: 8),
                         Text(
                           'Descrição',
