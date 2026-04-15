@@ -1,0 +1,17 @@
+tags:
+  edge:
+    description: "Testes de casos de borda (limites, valores extremos, dados vazios)"
+  failure:
+    description: "Testes de falha e erro (HTTP, timeout, dados corrompidos)"
+  resilience:
+    description: "Testes de resiliência (idempotência, estados inesperados)"
+  recovery:
+    description: "Testes de recuperação (fallback, cache, retry)"
+  timeout:
+    description: "Testes envolvendo timeout de rede"
+  fallback:
+    description: "Testes de fallback (URL alternativa, cache)"
+  empty:
+    description: "Testes com dados vazios ou listas vazias"
+  invalid:
+    description: "Testes com dados inválidos ou malformados"

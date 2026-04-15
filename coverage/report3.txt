@@ -1,0 +1,21 @@
+╔══════════════════════════════════════════════════════════╗
+║     Análise de Cobertura por Categoria — SunSense       ║
+╚══════════════════════════════════════════════════════════╝
+
+▶ Rodando TODOS os testes...
+▶ Rodando testes: unit...
+▶ Rodando testes: widget...
+▶ Rodando testes: edge...
+▶ Rodando testes: integration...
+
+┌─────────────────┬────────┬──────────┬─────────────┬────────────┐
+│ Categoria       │ Testes │ Cobert.  │ Linhas cob. │ Total lin. │
+├─────────────────┼────────┼──────────┼─────────────┼────────────┤
+│ TOTAL           │    294 │   80.3%  │        1058 │       1317 │
+│ unit            │    169 │   53.5%  │         426 │        797 │
+│ widget          │     35 │   46.1%  │         593 │       1286 │
+│ edge            │     71 │   50.1%  │         603 │       1204 │
+│ integration     │     19 │   49.9%  │         620 │       1243 │
+└─────────────────┴────────┴──────────┴─────────────┴────────────┘
+
+Arquivo lcov: coverage/lcov.info (última execução = TOTAL)

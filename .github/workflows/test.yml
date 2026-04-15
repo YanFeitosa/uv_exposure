@@ -1,0 +1,44 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Testes e Análise
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Verificar formatação
+        run: dart format --set-exit-if-changed .
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Rodar testes com cobertura
+        run: flutter test --coverage
+
+      - name: Relatório de testes
+        if: always()
+        run: dart run tool/test_report.dart
+
+      - name: Upload cobertura
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
