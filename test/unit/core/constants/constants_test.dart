@@ -136,7 +136,7 @@ void main() {
 
     test('strings de gap devem ter placeholders', () {
       expect(AppStrings.gapDialogBody, contains('{duration}'));
-      expect(AppStrings.gapDialogBody, contains('{uv}'));
+      expect(AppStrings.gapDialogBody, contains('{uvIndex}'));
       expect(AppStrings.gapDialogBodyExceeded, contains('{maxMinutes}'));
     });
 

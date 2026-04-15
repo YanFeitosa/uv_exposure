@@ -150,7 +150,7 @@ class AppStrings {
   static const String gapDialogBody =
       'O sistema operacional suspendeu o SunSense por {duration}.\n\n'
       'A exposição durante esse período foi estimada usando o último '
-      'índice UV conhecido ({uv}). O resultado pode não ser 100% preciso.';
+      'índice UV conhecido ({uvIndex}). O resultado pode não ser 100% preciso.';
   static const String gapDialogBodyExceeded =
       'O sistema operacional suspendeu o SunSense por {duration}.\n\n'
       'Apenas os primeiros {maxMinutes} minutos foram simulados '
@@ -176,8 +176,7 @@ class AppStrings {
   static const String aboutVersion = 'Versão';
   static const String aboutDescription =
       'O SunSense é uma ferramenta educacional e experimental para monitoramento '
-      'de exposição à radiação ultravioleta, desenvolvida como Trabalho de '
-      'Conclusão de Curso (TCC).';
+      'de exposição à radiação ultravioleta.';
   static const String aboutDisclaimer =
       'AVISO: Este aplicativo NÃO substitui orientação médica profissional. '
       'Os cálculos de tempo seguro de exposição são estimativas baseadas em '

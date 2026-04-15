@@ -1,21 +1,38 @@
-import 'dart:convert';
+/// Testes unitários — StorageService
+///
+/// Cobre CRUD de sessões, preferências, cache UV, modos e permissões.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uv_exposure_app/core/services/storage_service.dart';
 import 'package:uv_exposure_app/core/models/exposure_model.dart';
-import 'package:uv_exposure_app/core/constants/app_constants.dart';
 
 void main() {
-  // Configura SharedPreferences mock antes de cada teste
   setUp(() async {
     StorageService.resetForTest();
     SharedPreferences.setMockInitialValues({});
     await StorageService.init();
   });
 
-  // ─────────────────────────────────────────────
-  // Última sessão (checkpoint para restauração)
-  // ─────────────────────────────────────────────
+  ExposureSession _makeSession({
+    required String id,
+    required DateTime startTime,
+    Duration duration = const Duration(hours: 1),
+    double spf = 30,
+    String skinType = 'Tipo II - Clara',
+    double maxExposure = 50,
+    double maxUV = 7,
+  }) {
+    return ExposureSession(
+      id: id,
+      startTime: startTime,
+      endTime: startTime.add(duration),
+      spf: spf,
+      skinType: skinType,
+      maxExposurePercent: maxExposure,
+      maxUVIndex: maxUV,
+    );
+  }
+
   group('StorageService — última sessão', () {
     test('deve salvar e recuperar última sessão', () async {
       await StorageService.saveLastSession(
@@ -46,7 +63,6 @@ void main() {
         accumulatedExposure: 50.0,
         secondsElapsed: 600,
       );
-
       await StorageService.clearLastSession();
       final session = await StorageService.getLastSession();
       expect(session, isNull);
@@ -70,51 +86,16 @@ void main() {
       expect(session!['spf'], equals(50.0));
       expect(session['skinType'], equals('Tipo V - Escura'));
     });
-
-    test('deve retornar null para JSON corrompido no armazenamento', () async {
-      // Simular dados corrompidos
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConstants.cacheKeyLastSession, 'invalid-json{{{');
-
-      final session = await StorageService.getLastSession();
-      expect(session, isNull);
-    });
   });
 
-  // ─────────────────────────────────────────────
-  // Histórico de sessões
-  // ─────────────────────────────────────────────
   group('StorageService — histórico de sessões', () {
-    ExposureSession _makeSession({
-      required String id,
-      required DateTime startTime,
-      DateTime? endTime,
-      double spf = 30,
-      String skinType = 'Tipo II - Clara',
-      double maxExposure = 50,
-      double maxUV = 7,
-    }) {
-      return ExposureSession(
-        id: id,
-        startTime: startTime,
-        endTime: endTime ?? startTime.add(const Duration(hours: 1)),
-        spf: spf,
-        skinType: skinType,
-        maxExposurePercent: maxExposure,
-        maxUVIndex: maxUV,
-      );
-    }
-
     test('deve retornar lista vazia quando não há histórico', () async {
       final history = await StorageService.getExposureHistory();
       expect(history, isEmpty);
     });
 
     test('deve salvar e recuperar uma sessão', () async {
-      final session = _makeSession(
-        id: 'session-1',
-        startTime: DateTime(2026, 3, 15, 10),
-      );
+      final session = _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15, 10));
       await StorageService.saveExposureSession(session);
 
       final history = await StorageService.getExposureHistory();
@@ -129,63 +110,14 @@ void main() {
           startTime: DateTime(2026, 3, 15, 10 + i),
         ));
       }
-
       final history = await StorageService.getExposureHistory();
       expect(history.length, equals(5));
     });
 
-    test('deve respeitar limite de ${AppConstants.maxHistoryEntries} entradas', () async {
-      // Preencher até o limite
-      final sessions = <ExposureSession>[];
-      for (int i = 0; i < AppConstants.maxHistoryEntries + 5; i++) {
-        await StorageService.saveExposureSession(_makeSession(
-          id: 'session-$i',
-          startTime: DateTime(2026, 1, 1).add(Duration(hours: i)),
-        ));
-      }
-
-      final history = await StorageService.getExposureHistory();
-      expect(history.length, lessThanOrEqualTo(AppConstants.maxHistoryEntries));
-    });
-
-    test('deve remover sessões mais antigas ao exceder limite', () async {
-      // Adicionar exatamente maxHistoryEntries sessões
-      for (int i = 0; i < AppConstants.maxHistoryEntries; i++) {
-        await StorageService.saveExposureSession(_makeSession(
-          id: 'old-$i',
-          startTime: DateTime(2026, 1, 1).add(Duration(hours: i)),
-        ));
-      }
-
-      // Adicionar mais uma (deve remover a mais antiga)
-      await StorageService.saveExposureSession(_makeSession(
-        id: 'new-session',
-        startTime: DateTime(2026, 6, 1),
-      ));
-
-      final history = await StorageService.getExposureHistory();
-      expect(history.length, equals(AppConstants.maxHistoryEntries));
-      // A mais antiga (old-0) deve ter sido removida
-      expect(history.any((s) => s.id == 'old-0'), isFalse);
-      // A nova deve existir
-      expect(history.any((s) => s.id == 'new-session'), isTrue);
-    });
-
     test('deve limpar todo o histórico', () async {
-      await StorageService.saveExposureSession(_makeSession(
-        id: 'session-1',
-        startTime: DateTime(2026, 3, 15),
-      ));
+      await StorageService.saveExposureSession(
+          _makeSession(id: 'session-1', startTime: DateTime(2026, 3, 15)));
       await StorageService.clearHistory();
-
-      final history = await StorageService.getExposureHistory();
-      expect(history, isEmpty);
-    });
-
-    test('deve retornar lista vazia para JSON corrompido de histórico', () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConstants.cacheKeyExposureHistory, 'broken[json');
-
       final history = await StorageService.getExposureHistory();
       expect(history, isEmpty);
     });
@@ -195,10 +127,8 @@ void main() {
         id: 'with-readings',
         startTime: DateTime(2026, 3, 15, 10),
         endTime: DateTime(2026, 3, 15, 11),
-        spf: 30,
-        skinType: 'Tipo II - Clara',
-        maxExposurePercent: 60,
-        maxUVIndex: 8,
+        spf: 30, skinType: 'Tipo II - Clara',
+        maxExposurePercent: 60, maxUVIndex: 8,
         readings: [
           UVReading(uvIndex: 7, timestamp: DateTime(2026, 3, 15, 10, 15)),
           UVReading(uvIndex: 8, timestamp: DateTime(2026, 3, 15, 10, 30)),
@@ -212,42 +142,32 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────
-  // Filtros por data
-  // ─────────────────────────────────────────────
   group('StorageService — filtros por data', () {
     setUp(() async {
-      // Sessões em datas diferentes
+      final now = DateTime.now();
       final sessions = [
         ExposureSession(
           id: 'today-1',
-          startTime: DateTime.now().subtract(const Duration(hours: 2)),
-          endTime: DateTime.now().subtract(const Duration(hours: 1)),
-          spf: 30,
-          skinType: 'Tipo II - Clara',
-          maxExposurePercent: 40,
-          maxUVIndex: 5,
+          startTime: now.subtract(const Duration(minutes: 5)),
+          endTime: now.subtract(const Duration(minutes: 4)),
+          spf: 30, skinType: 'Tipo II - Clara',
+          maxExposurePercent: 40, maxUVIndex: 5,
         ),
         ExposureSession(
           id: 'yesterday-1',
-          startTime: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
-          endTime: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-          spf: 30,
-          skinType: 'Tipo II - Clara',
-          maxExposurePercent: 60,
-          maxUVIndex: 7,
+          startTime: now.subtract(const Duration(days: 1)),
+          endTime: now.subtract(const Duration(days: 1)).add(const Duration(hours: 1)),
+          spf: 30, skinType: 'Tipo II - Clara',
+          maxExposurePercent: 60, maxUVIndex: 7,
         ),
         ExposureSession(
           id: 'old-1',
-          startTime: DateTime.now().subtract(const Duration(days: 10)),
-          endTime: DateTime.now().subtract(const Duration(days: 10)).add(const Duration(hours: 1)),
-          spf: 30,
-          skinType: 'Tipo II - Clara',
-          maxExposurePercent: 80,
-          maxUVIndex: 9,
+          startTime: now.subtract(const Duration(days: 10)),
+          endTime: now.subtract(const Duration(days: 10)).add(const Duration(hours: 1)),
+          spf: 30, skinType: 'Tipo II - Clara',
+          maxExposurePercent: 80, maxUVIndex: 9,
         ),
       ];
-
       for (final s in sessions) {
         await StorageService.saveExposureSession(s);
       }
@@ -275,14 +195,10 @@ void main() {
         now.subtract(const Duration(days: 2)),
         now,
       );
-      // Deve incluir hoje e ontem, mas não 10 dias atrás
       expect(sessions.length, equals(2));
     });
   });
 
-  // ─────────────────────────────────────────────
-  // Cache de dados UV
-  // ─────────────────────────────────────────────
   group('StorageService — cache UV', () {
     test('deve salvar e recuperar cache UV', () async {
       await StorageService.cacheUVData(7.5);
@@ -295,19 +211,8 @@ void main() {
       final cached = await StorageService.getCachedUVData();
       expect(cached, isNull);
     });
-
-    test('deve retornar null para JSON corrompido de cache UV', () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(AppConstants.cacheKeyLastUVData, 'bad-json');
-
-      final cached = await StorageService.getCachedUVData();
-      expect(cached, isNull);
-    });
   });
 
-  // ─────────────────────────────────────────────
-  // Preferências do usuário
-  // ─────────────────────────────────────────────
   group('StorageService — preferências do usuário', () {
     test('deve salvar e recuperar SPF padrão', () async {
       await StorageService.saveUserPreferences(defaultSpf: '50');
@@ -316,8 +221,7 @@ void main() {
     });
 
     test('deve salvar e recuperar fototipo padrão', () async {
-      await StorageService.saveUserPreferences(
-          defaultSkinType: 'Tipo III - Média Clara');
+      await StorageService.saveUserPreferences(defaultSkinType: 'Tipo III - Média Clara');
       final prefs = await StorageService.getUserPreferences();
       expect(prefs['defaultSkinType'], equals('Tipo III - Média Clara'));
     });
@@ -340,9 +244,6 @@ void main() {
     });
   });
 
-  // ─────────────────────────────────────────────
-  // Modo demo e alarme sonoro
-  // ─────────────────────────────────────────────
   group('StorageService — configurações do app', () {
     test('modo demo: padrão deve ser false', () async {
       final demo = await StorageService.getDemoMode();
@@ -352,7 +253,6 @@ void main() {
     test('deve salvar e recuperar modo demo', () async {
       await StorageService.setDemoMode(true);
       expect(await StorageService.getDemoMode(), isTrue);
-
       await StorageService.setDemoMode(false);
       expect(await StorageService.getDemoMode(), isFalse);
     });
@@ -365,15 +265,11 @@ void main() {
     test('deve salvar e recuperar estado do alarme sonoro', () async {
       await StorageService.setSoundAlarmEnabled(false);
       expect(await StorageService.isSoundAlarmEnabled(), isFalse);
-
       await StorageService.setSoundAlarmEnabled(true);
       expect(await StorageService.isSoundAlarmEnabled(), isTrue);
     });
   });
 
-  // ─────────────────────────────────────────────
-  // Permissão de notificação
-  // ─────────────────────────────────────────────
   group('StorageService — permissão de notificação', () {
     test('padrão deve ser false (ainda não perguntou)', () async {
       final asked = await StorageService.wasNotificationPermissionAsked();

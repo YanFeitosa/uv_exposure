@@ -91,6 +91,41 @@ class ExposureProvider extends ChangeNotifier {
     _gapDismissed = true;
     notifyListeners();
   }
+
+  /// Configura estado interno para testes de widget.
+  @visibleForTesting
+  void setTestState({
+    ConnectionStatus? connectionStatus,
+    String? connectionError,
+    bool? stoppedDueToDisconnection,
+    bool? gapDetected,
+    int? lastGapDurationSeconds,
+    int? lastGapCompensatedSeconds,
+    bool? gapExceededMax,
+    double? gapUVIndex,
+    bool? alarmActive,
+    double? currentUVIndex,
+    bool? isMonitoring,
+    int? secondsElapsed,
+    bool? gapDismissed,
+    DateTime? disconnectedSince,
+  }) {
+    if (connectionStatus != null) _connectionStatus = connectionStatus;
+    if (connectionError != null) _connectionError = connectionError;
+    if (stoppedDueToDisconnection != null) _stoppedDueToDisconnection = stoppedDueToDisconnection;
+    if (gapDetected != null) _gapDetected = gapDetected;
+    if (lastGapDurationSeconds != null) _lastGapDurationSeconds = lastGapDurationSeconds;
+    if (lastGapCompensatedSeconds != null) _lastGapCompensatedSeconds = lastGapCompensatedSeconds;
+    if (gapExceededMax != null) _gapExceededMax = gapExceededMax;
+    if (gapUVIndex != null) _gapUVIndex = gapUVIndex;
+    if (alarmActive != null) _alarmActive = alarmActive;
+    if (currentUVIndex != null) _currentUVIndex = currentUVIndex;
+    if (isMonitoring != null) _isMonitoring = isMonitoring;
+    if (secondsElapsed != null) _secondsElapsed = secondsElapsed;
+    if (gapDismissed != null) _gapDismissed = gapDismissed;
+    if (disconnectedSince != null) _disconnectedSince = disconnectedSince;
+    notifyListeners();
+  }
   
   /// Ativa ou desativa o modo Demo (deve ser chamado antes de startMonitoring)
   void setDemoMode(bool value) {
@@ -339,8 +374,6 @@ class ExposureProvider extends ChangeNotifier {
               AppLogger.warning('Erro ao exibir notificação de cache', tag: 'ExposureProvider', error: e);
             }
           }
-        } else {
-          _connectionStatus = ConnectionStatus.connected;
         }
         
         // Verifica expiração do cache
@@ -363,8 +396,6 @@ class ExposureProvider extends ChangeNotifier {
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
         _connectionError = e.message;
-      } else {
-        _connectionStatus = ConnectionStatus.connected;
       }
       
       // Verifica expiração do cache
