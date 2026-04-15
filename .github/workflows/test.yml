@@ -29,14 +29,8 @@ jobs:
       - name: Análise estática
         run: flutter analyze
 
-      - name: Testes unitários
-        run: flutter test test/unit/ --coverage
-
-      - name: Testes de widget
-        run: flutter test test/widget/ --coverage --merge-coverage
-
-      - name: Testes de integração
-        run: flutter test test/integration/ --coverage --merge-coverage
+      - name: Rodar testes com cobertura
+        run: flutter test --coverage
 
       - name: Relatório de testes
         if: always()
