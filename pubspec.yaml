@@ -2,7 +2,7 @@ name: uv_exposure_app
 description: "SunSense - UV Exposure Monitoring App"
 publish_to: 'none'
 
-version: 3.0.2+3
+version: 3.1.0+3
 
 environment:
   sdk: ^3.5.1
