@@ -6,6 +6,7 @@ import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
 import '../models/exposure_model.dart';
 import '../services/logger_service.dart';
+import '../services/multicast_service.dart';
 import '../services/uv_data_service.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
@@ -218,6 +219,16 @@ class ExposureProvider extends ChangeNotifier {
     // Inicia o Foreground Service (Android) para manter o app vivo
     await ForegroundService.start();
 
+    // Inicia escuta UDP multicast (canal primário de dados)
+    if (!_isDemoMode) {
+      try {
+        await MulticastService.start();
+      } catch (e) {
+        AppLogger.warning('Multicast indisponível, usando HTTP apenas',
+            tag: 'ExposureProvider', error: e);
+      }
+    }
+
     // Timer principal (1 segundo)
     _lastTickTime = DateTime.now();
     _timer = Timer.periodic(
@@ -243,7 +254,8 @@ class ExposureProvider extends ChangeNotifier {
       _alarmActive = false;
     }
 
-    // Para o Foreground Service
+    // Para o Foreground Service e a escuta multicast
+    await MulticastService.stop();
     await ForegroundService.stop();
     await _saveSession();
 
@@ -360,7 +372,21 @@ class ExposureProvider extends ChangeNotifier {
       return;
     }
 
-    // Evita chamadas HTTP concorrentes
+    // Canal primário: UDP multicast (push do dispositivo a cada 1s)
+    final multicastData = MulticastService.latestData;
+    if (multicastData != null && MulticastService.isReceiving) {
+      final data = multicastData;
+      _currentUVIndex =
+          data.uvIndex > 0 ? data.uvIndex : AppConstants.defaultUVIndex;
+      _connectionStatus = ConnectionStatus.connected;
+      _connectionError = null;
+      _disconnectedSince = null;
+      UVDataService.cacheFromMulticast(data);
+      await StorageService.cacheUVData(_currentUVIndex);
+      return;
+    }
+
+    // Fallback: HTTP polling (quando multicast não está disponível)
     if (_isFetching) return;
     _isFetching = true;
 
@@ -373,10 +399,8 @@ class ExposureProvider extends ChangeNotifier {
       if (data.isFromCache) {
         _disconnectedSince ??= DateTime.now();
 
-        // Mostra cache após threshold
         if (shouldShowCacheIndicator) {
           _connectionStatus = ConnectionStatus.usingCache;
-          // Notifica uso de cache (uma vez)
           if (!_cacheNotificationSent) {
             _cacheNotificationSent = true;
             try {
@@ -388,7 +412,6 @@ class ExposureProvider extends ChangeNotifier {
           }
         }
 
-        // Verifica expiração do cache
         if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
           await _stopDueToDisconnection();
           return;
@@ -403,25 +426,21 @@ class ExposureProvider extends ChangeNotifier {
     } on UVDataException catch (e) {
       _disconnectedSince ??= DateTime.now();
 
-      // Mostra desconectado após threshold
       if (shouldShowCacheIndicator) {
         _connectionStatus = ConnectionStatus.disconnected;
         _connectionError = e.message;
       }
 
-      // Verifica expiração do cache
       if (secondsDisconnected >= AppConstants.cacheExpiration.inSeconds) {
         await _stopDueToDisconnection();
         return;
       }
 
-      // Fallback: cache local
       final cached = await StorageService.getCachedUVData();
       if (cached != null) {
         _currentUVIndex = cached['uvIndex'] as double;
         if (shouldShowCacheIndicator) {
           _connectionStatus = ConnectionStatus.usingCache;
-          // Notifica o usuário sobre uso de cache (apenas uma vez)
           if (!_cacheNotificationSent) {
             _cacheNotificationSent = true;
             try {
@@ -635,6 +654,7 @@ class ExposureProvider extends ChangeNotifier {
   void dispose() {
     _timer?.cancel();
     _audioPlayer.dispose();
+    MulticastService.stop();
     ForegroundService.stop();
     super.dispose();
   }

@@ -222,4 +222,9 @@ class UVDataService {
   static void resetUrlPreference() {
     _useFallbackIp = false;
   }
+
+  /// Atualiza o cache em memória com dados vindos do multicast
+  static void cacheFromMulticast(UVData data) {
+    _cacheData(data);
+  }
 }

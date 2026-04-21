@@ -72,7 +72,7 @@ void main() async {
       final info = tagMap[tag]!;
       print('  @$tag'.padRight(20) +
           '${info.testCount.toString().padLeft(3)} tests (${info.fileCount} files)');
-    }
+    } // info.testCount / info.fileCount via record named fields
   }
   print('');
 
@@ -109,12 +109,6 @@ void main() async {
   // Files without coverage
   final coveredFiles =
       coverage?.keys.map((f) => f.replaceAll('\\', '/')).toSet() ?? {};
-
-  String _toLibRelative(String path) {
-    final normalized = path.replaceAll('\\', '/');
-    final idx = normalized.lastIndexOf('/lib/');
-    return idx >= 0 ? normalized.substring(idx + 1) : normalized;
-  }
 
   final uncoveredEligible = eligibleLibFiles.where((f) {
     final relative = _toLibRelative(f);
@@ -164,6 +158,12 @@ void main() async {
 
 // ─── Helpers ───────────────────────────────────────
 
+String _toLibRelative(String path) {
+  final normalized = path.replaceAll('\\', '/');
+  final idx = normalized.lastIndexOf('/lib/');
+  return idx >= 0 ? normalized.substring(idx + 1) : normalized;
+}
+
 List<String> _findTestFiles(String dir) {
   final d = Directory(dir);
   if (!d.existsSync()) return [];
@@ -198,9 +198,14 @@ int _countTests(List<String> files) {
   return count;
 }
 
+// Tag info: (fileCount, testCount)
+typedef _TagInfo = ({int fileCount, int testCount});
+// Coverage info: (linesHit, linesTotal)
+typedef _CoverageInfo = ({int linesHit, int linesTotal});
+
 Map<String, _TagInfo> _scanTags(List<String> files) {
   final tagPattern = RegExp(r'''@Tags\s*\(\s*\[(.*?)\]''');
-  final result = <String, _TagInfo>{};
+  final result = <String, ({int fileCount, int testCount})>{};
 
   for (final path in files) {
     final content = File(path).readAsStringSync();
@@ -217,27 +222,19 @@ Map<String, _TagInfo> _scanTags(List<String> files) {
     final testCount = _countTests([path]);
 
     for (final tag in tags) {
-      result.putIfAbsent(tag, () => _TagInfo());
-      result[tag]!.fileCount++;
-      result[tag]!.testCount += testCount;
+      final prev = result[tag] ?? (fileCount: 0, testCount: 0);
+      result[tag] = (
+        fileCount: prev.fileCount + 1,
+        testCount: prev.testCount + testCount
+      );
     }
   }
 
   return result;
 }
 
-class _TagInfo {
-  int fileCount = 0;
-  int testCount = 0;
-}
-
-class _CoverageInfo {
-  int linesHit = 0;
-  int linesTotal = 0;
-}
-
 Map<String, _CoverageInfo>? _parseLcov(File lcovFile) {
-  final result = <String, _CoverageInfo>{};
+  final result = <String, ({int linesHit, int linesTotal})>{};
   String? currentFile;
 
   for (final line in lcovFile.readAsLinesSync()) {
@@ -247,11 +244,13 @@ Map<String, _CoverageInfo>? _parseLcov(File lcovFile) {
           .replaceAll('\\', '/')
           .replaceFirst(RegExp(r'.*/lib/'), '');
     } else if (line.startsWith('LH:') && currentFile != null) {
-      result.putIfAbsent(currentFile, () => _CoverageInfo());
-      result[currentFile]!.linesHit = int.parse(line.substring(3));
+      final prev = result[currentFile] ?? (linesHit: 0, linesTotal: 0);
+      result[currentFile] =
+          (linesHit: int.parse(line.substring(3)), linesTotal: prev.linesTotal);
     } else if (line.startsWith('LF:') && currentFile != null) {
-      result.putIfAbsent(currentFile, () => _CoverageInfo());
-      result[currentFile]!.linesTotal = int.parse(line.substring(3));
+      final prev = result[currentFile] ?? (linesHit: 0, linesTotal: 0);
+      result[currentFile] =
+          (linesHit: prev.linesHit, linesTotal: int.parse(line.substring(3)));
     } else if (line == 'end_of_record') {
       currentFile = null;
     }

@@ -6,6 +6,11 @@ class AppConstants {
   static const String deviceDataEndpoint = '/data';
   static const String deviceFallbackIp = '192.168.1.100';
 
+  // UDP Multicast (canal primário de comunicação com o sensor)
+  static const String multicastAddress = '239.255.0.1';
+  static const int multicastPort = 5000;
+  static const Duration multicastTimeout = Duration(seconds: 10);
+
   // Timeouts e intervalos de rede
   static const Duration httpTimeout = Duration(seconds: 10);
   static const Duration connectionCheckTimeout = Duration(seconds: 5);
