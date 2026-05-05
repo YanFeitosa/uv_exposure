@@ -75,15 +75,20 @@ void main() {
       expect(lines[0], contains('FPS'));
       expect(lines[0], contains('Exposição'));
 
-      // Dados da primeira sessão
+      // Cabeçalho inclui a coluna Leituras
+      expect(lines[0], contains('Leituras'));
+
+      // Dados da primeira sessão (2 leituras)
       expect(lines[1], contains('1'));
       expect(lines[1], contains('30'));
       expect(lines[1], contains('45.5'));
       expect(lines[1], contains('7.2'));
+      expect(lines[1].split(',').last.trim(), equals('2'));
 
-      // Dados da segunda sessão
+      // Dados da segunda sessão (0 leituras)
       expect(lines[2], contains('2'));
       expect(lines[2], contains('50'));
+      expect(lines[2].split(',').last.trim(), equals('0'));
     });
 
     test('deve escapar skinType com vírgula', () async {

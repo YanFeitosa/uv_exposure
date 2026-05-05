@@ -38,6 +38,9 @@ dependencies:
   # Foreground service / background task
   flutter_foreground_task: ^9.2.1
 
+  # Compartilhamento de arquivos (bottom sheet nativo do sistema)
+  share_plus: ^10.1.2
+
 dependency_overrides:
   path_provider_android: ^2.2.22
 

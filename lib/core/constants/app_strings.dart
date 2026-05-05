@@ -178,6 +178,12 @@ class AppStrings {
   static const String exportError = 'Erro ao exportar dados';
   static const String exportNoData = 'Nenhum dado para exportar';
   static const String exportFileSaved = 'Arquivo salvo em:';
+  static const String exportShareSubject = 'Histórico de exposição UV — SunSense';
+  static const String exportShareText =
+      'Segue o histórico de exposição UV exportado pelo aplicativo SunSense.';
+  static const String exportShared = 'Arquivo compartilhado';
+  static const String exportShareDismissed =
+      'Compartilhamento cancelado. Arquivo salvo em:';
 
   // Tela Sobre
   static const String about = 'Sobre';

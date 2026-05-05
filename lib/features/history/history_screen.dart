@@ -38,16 +38,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     try {
-      final path = format == 'csv'
-          ? await ExportService.exportToCSV(sessions)
-          : await ExportService.exportToJSON(sessions);
+      final result = await ExportService.exportAndShare(
+        sessions,
+        format: format,
+        subject: AppStrings.exportShareSubject,
+        text: AppStrings.exportShareText,
+      );
 
       if (!mounted) return;
+
+      final String message;
+      if (result.wasShared) {
+        message = AppStrings.exportShared;
+      } else if (result.wasDismissed) {
+        message =
+            '${AppStrings.exportShareDismissed}\n${result.path}';
+      } else {
+        // Plataformas sem suporte a share (desktop, testes) caem aqui.
+        message =
+            '${AppStrings.exportSuccess}\n${AppStrings.exportFileSaved} ${result.path}';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              '${AppStrings.exportSuccess}\n${AppStrings.exportFileSaved} $path'),
-          duration: const Duration(seconds: 4),
+          content: Text(message),
+          duration: const Duration(seconds: 5),
         ),
       );
     } catch (e) {

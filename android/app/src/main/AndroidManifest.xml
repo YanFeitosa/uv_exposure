@@ -9,7 +9,7 @@
     
     <!-- Foreground Service (monitoramento UV em segundo plano) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
@@ -52,7 +52,7 @@
         <!-- Foreground Service para monitoramento UV em segundo plano -->
         <service 
             android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
-            android:foregroundServiceType="specialUse"
+            android:foregroundServiceType="connectedDevice"
             android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:

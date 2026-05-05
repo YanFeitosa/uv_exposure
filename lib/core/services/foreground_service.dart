@@ -66,7 +66,7 @@ class ForegroundService {
         serviceId: 256,
         notificationTitle: AppStrings.appName,
         notificationText: AppStrings.foregroundNotificationInitial,
-        serviceTypes: [ForegroundServiceTypes.specialUse],
+        serviceTypes: [ForegroundServiceTypes.connectedDevice],
         callback: _startCallback,
       );
 
