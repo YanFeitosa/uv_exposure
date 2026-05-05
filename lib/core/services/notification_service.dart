@@ -46,7 +46,8 @@ class NotificationService {
       );
 
       if (initialized != true) {
-        AppLogger.warning('Falha na inicialização', tag: 'NotificationService');
+        LoggerService.warning('Falha na inicialização',
+            tag: 'NotificationService');
         return false;
       }
 
@@ -56,7 +57,7 @@ class NotificationService {
       _isInitialized = true;
       return true;
     } catch (e) {
-      AppLogger.error('Erro na inicialização',
+      LoggerService.error('Erro na inicialização',
           tag: 'NotificationService', error: e);
       return false;
     }
@@ -79,7 +80,7 @@ class NotificationService {
   }
 
   static void _onNotificationTapped(NotificationResponse response) {
-    AppLogger.debug('Notificação tocada: ${response.payload}',
+    LoggerService.debug('Notificação tocada: ${response.payload}',
         tag: 'NotificationService');
     // Pode ser usado para navegação ao tocar na notificação
   }
@@ -132,11 +133,11 @@ class NotificationService {
       }
 
       _permissionGranted = granted;
-      AppLogger.info('Permissão ${granted ? "concedida" : "negada"}',
+      LoggerService.info('Permissão ${granted ? "concedida" : "negada"}',
           tag: 'NotificationService');
       return granted;
     } catch (e) {
-      AppLogger.error('Erro ao solicitar permissão',
+      LoggerService.error('Erro ao solicitar permissão',
           tag: 'NotificationService', error: e);
       return false;
     }

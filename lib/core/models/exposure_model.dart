@@ -29,6 +29,7 @@ class ExposureSession {
   final double spf;
   final String skinType;
   final double maxExposurePercent;
+  final double averageExposurePercent;
   final double maxUVIndex;
   final List<UVReading> readings;
 
@@ -39,6 +40,7 @@ class ExposureSession {
     required this.spf,
     required this.skinType,
     required this.maxExposurePercent,
+    this.averageExposurePercent = 0.0,
     required this.maxUVIndex,
     this.readings = const [],
   });
@@ -55,6 +57,7 @@ class ExposureSession {
     double? spf,
     String? skinType,
     double? maxExposurePercent,
+    double? averageExposurePercent,
     double? maxUVIndex,
     List<UVReading>? readings,
   }) {
@@ -65,6 +68,8 @@ class ExposureSession {
       spf: spf ?? this.spf,
       skinType: skinType ?? this.skinType,
       maxExposurePercent: maxExposurePercent ?? this.maxExposurePercent,
+      averageExposurePercent:
+          averageExposurePercent ?? this.averageExposurePercent,
       maxUVIndex: maxUVIndex ?? this.maxUVIndex,
       readings: readings ?? this.readings,
     );
@@ -77,6 +82,7 @@ class ExposureSession {
         'spf': spf,
         'skinType': skinType,
         'maxExposurePercent': maxExposurePercent,
+        'averageExposurePercent': averageExposurePercent,
         'maxUVIndex': maxUVIndex,
         'readings': readings.map((r) => r.toJson()).toList(),
       };
@@ -95,6 +101,8 @@ class ExposureSession {
         skinType: (json['skinType'] as String?) ?? 'Tipo II - Clara',
         maxExposurePercent:
             (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
+        averageExposurePercent:
+            (json['averageExposurePercent'] as num?)?.toDouble() ?? 0.0,
         maxUVIndex: (json['maxUVIndex'] as num?)?.toDouble() ?? 0.0,
         readings: (json['readings'] as List<dynamic>?)
                 ?.map((r) {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/constants/app_colors.dart';
@@ -51,8 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (result.wasShared) {
         message = AppStrings.exportShared;
       } else if (result.wasDismissed) {
-        message =
-            '${AppStrings.exportShareDismissed}\n${result.path}';
+        message = '${AppStrings.exportShareDismissed}\n${result.path}';
       } else {
         // Plataformas sem suporte a share (desktop, testes) caem aqui.
         message =
@@ -117,8 +116,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             itemBuilder: (context) => [
               const PopupMenuItem(value: 1, child: Text(AppStrings.today)),
               const PopupMenuItem(value: 7, child: Text(AppStrings.last7Days)),
-              const PopupMenuItem(
-                  value: 30, child: Text(AppStrings.last30Days)),
             ],
           ),
         ],
@@ -134,8 +131,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline,
-                      size: 64, color: Colors.red.shade300),
+                  const Icon(Icons.error_outline,
+                      size: 64, color: AppColors.errorMuted),
                   const SizedBox(height: 16),
                   Text(provider.error!),
                   const SizedBox(height: 16),
@@ -149,15 +146,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
 
           if (!provider.hasData) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey.shade400),
-                  const SizedBox(height: 16),
+                  Icon(Icons.history,
+                      size: 64, color: AppColors.emptyStateIcon),
+                  SizedBox(height: 16),
                   Text(
                     AppStrings.noHistoryData,
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(color: AppColors.emptyStateText),
                   ),
                 ],
               ),
@@ -219,7 +217,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 AppStrings.averageExposure,
                 '${((stats['averageExposure'] ?? 0.0) as double).toStringAsFixed(1)}%',
                 Icons.wb_sunny,
-                Colors.orange,
+                AppColors.warning,
               ),
             ),
           ],
@@ -232,7 +230,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 AppStrings.maxUV,
                 (stats['maxUVIndex'] as double).toStringAsFixed(1),
                 Icons.trending_up,
-                Colors.red,
+                AppColors.exposureDanger,
               ),
             ),
             const SizedBox(width: 12),
@@ -241,7 +239,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 AppStrings.totalTime,
                 _formatDuration(stats['totalDuration'] as Duration),
                 Icons.access_time,
-                Colors.blue,
+                AppColors.info,
               ),
             ),
           ],
@@ -253,7 +251,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
     // Cor de contraste para o card
-    final displayColor = color == AppColors.secondary ? Colors.white : color;
+    final displayColor =
+        color == AppColors.secondary ? AppColors.textOnCard : color;
 
     return Card(
       child: Padding(
@@ -274,7 +273,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               title,
               style: const TextStyle(
                 fontSize: 12,
-                color: Colors.white70,
+                color: AppColors.textOnCardMuted,
               ),
             ),
           ],
@@ -308,7 +307,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     return BarTooltipItem(
                       '${rod.toY.toStringAsFixed(1)}%',
-                      const TextStyle(color: Colors.white),
+                      const TextStyle(color: AppColors.textOnCard),
                     );
                   },
                 ),
@@ -425,7 +424,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: Text(
             '${session.maxExposurePercent.toStringAsFixed(0)}%',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnCard,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -433,19 +432,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         title: Text(
           _formatDateTime(session.startTime),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textOnCard,
+          ),
         ),
         subtitle: Text(
           '${AppStrings.durationLabel}: ${_formatDuration(session.duration)} • ${AppStrings.maxUV} ${session.maxUVIndex.toStringAsFixed(1)}',
+          style: const TextStyle(color: AppColors.textOnCardMuted),
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               '${AppStrings.spfPrefix} ${session.spf.toInt()}',
               style: const TextStyle(
-                color: AppColors.secondary,
+                color: AppColors.textOnCard,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              session.skinType,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textOnCardSubtle,
               ),
             ),
           ],

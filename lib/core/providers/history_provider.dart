@@ -27,7 +27,7 @@ class HistoryProvider extends ChangeNotifier {
       _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
     } catch (e) {
       _error = '${AppStrings.failedToLoadHistory}: $e';
-      AppLogger.error(_error!, tag: 'HistoryProvider');
+      LoggerService.error(_error!, tag: 'HistoryProvider');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -89,7 +89,8 @@ class HistoryProvider extends ChangeNotifier {
 
     for (final session in _sessions) {
       totalDuration += session.duration;
-      totalExposure += session.maxExposurePercent;
+      totalExposure +=
+          session.averageExposurePercent * session.duration.inSeconds;
       totalUVIndex += session.maxUVIndex;
 
       if (session.maxExposurePercent > maxExposure) {
@@ -103,7 +104,9 @@ class HistoryProvider extends ChangeNotifier {
     return {
       'totalSessions': _sessions.length,
       'totalDuration': totalDuration,
-      'averageExposure': totalExposure / _sessions.length,
+      'averageExposure': totalDuration.inSeconds > 0
+          ? totalExposure / totalDuration.inSeconds
+          : 0.0,
       'maxExposure': maxExposure,
       'averageUVIndex': totalUVIndex / _sessions.length,
       'maxUVIndex': maxUVIndex,
@@ -123,19 +126,22 @@ class HistoryProvider extends ChangeNotifier {
       final daySessions = _sessions.where((s) =>
           s.startTime.isAfter(startOfDay) && s.startTime.isBefore(endOfDay));
 
-      double totalExposure = 0;
+      double weightedExposureSum = 0;
       double maxUV = 0;
       Duration totalDuration = Duration.zero;
 
       for (final session in daySessions) {
-        totalExposure += session.maxExposurePercent;
+        weightedExposureSum +=
+            session.averageExposurePercent * session.duration.inSeconds;
         if (session.maxUVIndex > maxUV) maxUV = session.maxUVIndex;
         totalDuration += session.duration;
       }
 
       data.add({
         'date': startOfDay,
-        'exposure': totalExposure,
+        'exposure': totalDuration.inSeconds > 0
+            ? weightedExposureSum / totalDuration.inSeconds
+            : 0.0,
         'maxUVIndex': maxUV,
         'duration': totalDuration,
         'sessions': daySessions.length,

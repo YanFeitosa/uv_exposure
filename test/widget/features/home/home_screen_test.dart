@@ -137,7 +137,8 @@ void main() {
     });
 
     testWidgets('deve pré-selecionar último fototipo usado', (tester) async {
-      await StorageService.saveSkinType('Tipo III - Média Clara');
+      await StorageService.saveUserPreferences(
+          defaultSkinType: 'Tipo III - Média Clara');
 
       await tester.pumpWidget(buildHomeScreen());
       await tester.pump();

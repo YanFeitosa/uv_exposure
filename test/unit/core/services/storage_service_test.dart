@@ -247,8 +247,9 @@ void main() {
       expect(prefs['defaultSkinType'], isNull);
     });
 
-    test('deve salvar e recuperar fototipo via saveSkinType', () async {
-      await StorageService.saveSkinType('Tipo V - Escura');
+    test('deve salvar e recuperar fototipo via saveUserPreferences', () async {
+      await StorageService.saveUserPreferences(
+          defaultSkinType: 'Tipo V - Escura');
       final skinType = await StorageService.getSkinType();
       expect(skinType, equals('Tipo V - Escura'));
     });

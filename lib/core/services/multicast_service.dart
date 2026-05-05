@@ -59,13 +59,13 @@ class MulticastService {
 
       _subscription = _socket!.listen(_handleEvent);
 
-      AppLogger.info(
+      LoggerService.info(
         'Escutando multicast em ${AppConstants.multicastAddress}:'
         '${AppConstants.multicastPort}',
         tag: _tag,
       );
     } catch (e) {
-      AppLogger.error('Falha ao iniciar multicast', tag: _tag, error: e);
+      LoggerService.error('Falha ao iniciar multicast', tag: _tag, error: e);
       await stop();
       rethrow;
     }
@@ -91,7 +91,7 @@ class MulticastService {
 
     await _releaseMulticastLock();
 
-    AppLogger.info('Multicast parado', tag: _tag);
+    LoggerService.info('Multicast parado', tag: _tag);
   }
 
   /// Processa eventos do socket UDP
@@ -110,7 +110,7 @@ class MulticastService {
       _controller.add(data);
     } catch (e) {
       final msg = e.toString();
-      AppLogger.warning(
+      LoggerService.warning(
         'Pacote multicast inválido: ${msg.length > 80 ? msg.substring(0, 80) : msg}',
         tag: _tag,
       );
@@ -123,13 +123,14 @@ class MulticastService {
     try {
       await _channel.invokeMethod('acquireMulticastLock');
       _lockAcquired = true;
-      AppLogger.info('MulticastLock adquirido', tag: _tag);
+      LoggerService.info('MulticastLock adquirido', tag: _tag);
     } on MissingPluginException {
       // Plataforma não suporta (iOS, web, desktop, testes) — ignora
-      AppLogger.info('MulticastLock não disponível nesta plataforma',
+      LoggerService.info('MulticastLock não disponível nesta plataforma',
           tag: _tag);
     } catch (e) {
-      AppLogger.warning('Falha ao adquirir MulticastLock', tag: _tag, error: e);
+      LoggerService.warning('Falha ao adquirir MulticastLock',
+          tag: _tag, error: e);
     }
   }
 
@@ -139,11 +140,12 @@ class MulticastService {
     try {
       await _channel.invokeMethod('releaseMulticastLock');
       _lockAcquired = false;
-      AppLogger.info('MulticastLock liberado', tag: _tag);
+      LoggerService.info('MulticastLock liberado', tag: _tag);
     } on MissingPluginException {
       _lockAcquired = false;
     } catch (e) {
-      AppLogger.warning('Falha ao liberar MulticastLock', tag: _tag, error: e);
+      LoggerService.warning('Falha ao liberar MulticastLock',
+          tag: _tag, error: e);
     }
   }
 

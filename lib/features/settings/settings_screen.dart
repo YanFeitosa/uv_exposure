@@ -71,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _demoMode,
                   secondary: Icon(
                     Icons.science,
-                    color: _demoMode ? Colors.orange : AppColors.secondary,
+                    color: _demoMode ? AppColors.warning : AppColors.secondary,
                   ),
                   onChanged: (value) {
                     setState(() {

@@ -51,7 +51,7 @@ class ForegroundService {
     );
 
     _isInitialized = true;
-    AppLogger.info('Inicializado', tag: 'ForegroundService');
+    LoggerService.info('Inicializado', tag: 'ForegroundService');
   }
 
   /// Inicia o Foreground Service com notificação persistente
@@ -70,9 +70,9 @@ class ForegroundService {
         callback: _startCallback,
       );
 
-      AppLogger.info('start result = $result', tag: 'ForegroundService');
+      LoggerService.info('start result = $result', tag: 'ForegroundService');
     } catch (e) {
-      AppLogger.error('Erro ao iniciar serviço',
+      LoggerService.error('Erro ao iniciar serviço',
           tag: 'ForegroundService', error: e);
     }
   }
@@ -95,7 +95,7 @@ class ForegroundService {
       );
     } catch (e) {
       // Silencia erros de atualização
-      AppLogger.warning('Erro ao atualizar notificação',
+      LoggerService.warning('Erro ao atualizar notificação',
           tag: 'ForegroundService', error: e);
     }
   }
@@ -109,9 +109,9 @@ class ForegroundService {
       if (!isRunning) return;
 
       await FlutterForegroundTask.stopService();
-      AppLogger.info('Serviço parado', tag: 'ForegroundService');
+      LoggerService.info('Serviço parado', tag: 'ForegroundService');
     } catch (e) {
-      AppLogger.error('Erro ao parar serviço',
+      LoggerService.error('Erro ao parar serviço',
           tag: 'ForegroundService', error: e);
     }
   }
@@ -132,7 +132,7 @@ class ForegroundService {
     try {
       return await FlutterForegroundTask.requestIgnoreBatteryOptimization();
     } catch (e) {
-      AppLogger.error('Erro ao solicitar economia de bateria',
+      LoggerService.error('Erro ao solicitar economia de bateria',
           tag: 'ForegroundService', error: e);
       return false;
     }
@@ -145,7 +145,7 @@ class ForegroundService {
       return await FlutterForegroundTask
           .openIgnoreBatteryOptimizationSettings();
     } catch (e) {
-      AppLogger.error('Erro ao abrir configurações',
+      LoggerService.error('Erro ao abrir configurações',
           tag: 'ForegroundService', error: e);
       return false;
     }
@@ -162,7 +162,7 @@ void _startCallback() {
 class _NoOpTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    AppLogger.info('TaskHandler: onStart', tag: 'ForegroundService');
+    LoggerService.info('TaskHandler: onStart', tag: 'ForegroundService');
   }
 
   @override
@@ -170,7 +170,7 @@ class _NoOpTaskHandler extends TaskHandler {
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
-    AppLogger.info('TaskHandler: onDestroy (isTimeout: $isTimeout)',
+    LoggerService.info('TaskHandler: onDestroy (isTimeout: $isTimeout)',
         tag: 'ForegroundService');
   }
 }

@@ -1,6 +1,6 @@
 /// Testes de borda — ExposureProvider
 ///
-/// Cobre: pausa e retomada, estados de setTestState (cache threshold, disconnectedSince).
+/// Cobre: estados de conexão e setTestState (cache threshold, disconnectedSince).
 @Tags(['edge'])
 library;
 
@@ -53,61 +53,6 @@ void main() {
 
   tearDown(() {
     UVDataService.restoreHttpClient();
-  });
-
-  group('ExposureProvider — borda: pausa e retomada', () {
-    test('pauseMonitoring deve parar o timer mas manter isMonitoring', () {
-      fakeAsync((async) {
-        final provider = ExposureProvider();
-        provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
-        provider.setDemoMode(true);
-
-        provider.startMonitoring();
-        async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 1));
-
-        provider.pauseMonitoring();
-        expect(provider.isMonitoring, isTrue);
-
-        final secondsAfterPause = provider.secondsElapsed;
-        async.elapse(const Duration(seconds: 2));
-        expect(provider.secondsElapsed, equals(secondsAfterPause));
-
-        provider.stopMonitoring();
-        async.flushMicrotasks();
-        provider.dispose();
-      });
-    });
-
-    test('resumeMonitoring deve retomar acumulação', () {
-      fakeAsync((async) {
-        final provider = ExposureProvider();
-        provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
-        provider.setDemoMode(true);
-
-        provider.startMonitoring();
-        async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 1));
-
-        provider.pauseMonitoring();
-        final secondsAtPause = provider.secondsElapsed;
-        provider.resumeMonitoring();
-
-        async.elapse(const Duration(seconds: 2));
-        expect(provider.secondsElapsed, greaterThan(secondsAtPause));
-
-        provider.stopMonitoring();
-        async.flushMicrotasks();
-        provider.dispose();
-      });
-    });
-
-    test('resumeMonitoring sem monitoramento ativo não deve fazer nada', () {
-      final provider = ExposureProvider();
-      provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
-      provider.resumeMonitoring();
-      expect(provider.isMonitoring, isFalse);
-    });
   });
 
   group('ExposureProvider — borda: status de conexão no período de graça', () {

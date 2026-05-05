@@ -34,7 +34,7 @@ class AboutScreen extends StatelessWidget {
             Text(
               '${AppStrings.aboutVersion} 3.0.2',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
+                    color: AppColors.textHint,
                   ),
             ),
             const SizedBox(height: 24),
@@ -49,19 +49,21 @@ class AboutScreen extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.info_outline,
-                            color: AppColors.secondary),
+                            color: AppColors.textOnCard),
                         const SizedBox(width: 8),
                         Text(
                           'Descrição',
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                    color: AppColors.textOnCard,
                                   ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(AppStrings.aboutDescription),
+                    const Text(AppStrings.aboutDescription,
+                        style: TextStyle(color: AppColors.textOnCardMuted)),
                   ],
                 ),
               ),
@@ -70,7 +72,7 @@ class AboutScreen extends StatelessWidget {
 
             // Disclaimer
             Card(
-              color: Colors.orange.shade50,
+              color: AppColors.warningBackgroundSubtle,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -78,23 +80,23 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.warning_amber,
-                            color: Colors.orange.shade700),
+                        const Icon(Icons.warning_amber,
+                            color: AppColors.warningText),
                         const SizedBox(width: 8),
                         Text(
                           'Aviso Importante',
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.orange.shade700,
+                                    color: AppColors.warningText,
                                   ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(
+                    const Text(
                       AppStrings.aboutDisclaimer,
-                      style: TextStyle(color: Colors.orange.shade900),
+                      style: TextStyle(color: AppColors.warningTextDark),
                     ),
                   ],
                 ),
@@ -111,19 +113,21 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.build, color: AppColors.secondary),
+                        const Icon(Icons.build, color: AppColors.textOnCard),
                         const SizedBox(width: 8),
                         Text(
                           'Tecnologias',
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
+                                    color: AppColors.textOnCard,
                                   ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    const Text(AppStrings.aboutTechnology),
+                    const Text(AppStrings.aboutTechnology,
+                        style: TextStyle(color: AppColors.textOnCardMuted)),
                   ],
                 ),
               ),

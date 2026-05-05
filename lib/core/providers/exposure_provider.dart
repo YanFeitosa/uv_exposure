@@ -66,6 +66,8 @@ class ExposureProvider extends ChangeNotifier {
   DateTime? _sessionStartTime;
   List<UVReading> _sessionReadings = [];
   double _maxUVIndex = 0.0;
+  double _exposureSampleSum = 0.0;
+  int _exposureSampleCount = 0;
 
   // Getters públicos
   bool get isMonitoring => _isMonitoring;
@@ -177,9 +179,9 @@ class ExposureProvider extends ChangeNotifier {
 
   /// Tempo restante formatado para exibição na UI.
   ///
-  /// Retorna [AppStrings.safeTimeUVZero] quando IUV = 0 e nenhuma exposição
-  /// foi acumulada ainda. Retorna [AppStrings.safeTimeAboveLimit] quando o
-  /// tempo restante calculado excede [AppConstants.maxDisplayedSafeTimeMinutes].
+  /// Retorna [AppStrings.safeTimeAboveLimit] quando o tempo restante calculado
+  /// excede [AppConstants.maxDisplayedSafeTimeMinutes] (720 min = 12 horas),
+  /// evitando exibir valores absurdos para fototipos altos com FPS elevado.
   /// Não afeta os cálculos internos de exposição acumulada.
   String get displayRemainingTime {
     final remaining = _model.calculateRemainingSafeTime(_secondsElapsed);
@@ -209,6 +211,8 @@ class ExposureProvider extends ChangeNotifier {
     _stoppedDueToDisconnection = false;
     _sessionReadings = [];
     _maxUVIndex = 0.0;
+    _exposureSampleSum = 0.0;
+    _exposureSampleCount = 0;
     _lastTickTime = null;
     _gapDetected = false;
     _lastGapDurationSeconds = 0;
@@ -238,7 +242,7 @@ class ExposureProvider extends ChangeNotifier {
       try {
         await MulticastService.start();
       } catch (e) {
-        AppLogger.warning('Multicast indisponível, usando HTTP apenas',
+        LoggerService.warning('Multicast indisponível, usando HTTP apenas',
             tag: 'ExposureProvider', error: e);
       }
     }
@@ -276,24 +280,6 @@ class ExposureProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Pausa o monitoramento temporariamente
-  void pauseMonitoring() {
-    _timer?.cancel();
-    _timer = null;
-    notifyListeners();
-  }
-
-  /// Retoma o monitoramento
-  void resumeMonitoring() {
-    if (!_isMonitoring || _timer != null) return;
-
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => _tick(),
-    );
-    notifyListeners();
-  }
-
   Future<void> _tick() async {
     final now = DateTime.now();
 
@@ -310,6 +296,8 @@ class ExposureProvider extends ChangeNotifier {
     // Acumula exposição UV
     _secondsElapsed++;
     _model.accumulateExposure(_currentUVIndex, 1);
+    _exposureSampleSum += _model.accumulatedExposurePercent;
+    _exposureSampleCount++;
 
     // Busca dados UV do sensor periodicamente
     if (_secondsElapsed % AppConstants.dataFetchInterval.inSeconds == 0) {
@@ -357,7 +345,7 @@ class ExposureProvider extends ChangeNotifier {
     _gapExceededMax = missedSeconds > maxGap;
     _gapUVIndex = _currentUVIndex;
 
-    AppLogger.info(
+    LoggerService.info(
       'Gap detectado: ${missedSeconds}s perdidos, '
       '${compensatedSeconds}s compensados (UV: ${_currentUVIndex.toStringAsFixed(1)})',
       tag: 'ExposureProvider',
@@ -371,7 +359,7 @@ class ExposureProvider extends ChangeNotifier {
         uvIndex: _currentUVIndex,
       );
     } catch (e) {
-      AppLogger.warning('Erro ao exibir notificação de gap',
+      LoggerService.warning('Erro ao exibir notificação de gap',
           tag: 'ExposureProvider', error: e);
     }
   }
@@ -420,7 +408,7 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              AppLogger.warning('Erro ao exibir notificação de cache',
+              LoggerService.warning('Erro ao exibir notificação de cache',
                   tag: 'ExposureProvider', error: e);
             }
           }
@@ -460,7 +448,7 @@ class ExposureProvider extends ChangeNotifier {
             try {
               await NotificationService.showCacheWarning();
             } catch (e) {
-              AppLogger.warning('Erro ao exibir notificação de cache',
+              LoggerService.warning('Erro ao exibir notificação de cache',
                   tag: 'ExposureProvider', error: e);
             }
           }
@@ -493,7 +481,7 @@ class ExposureProvider extends ChangeNotifier {
     try {
       await NotificationService.showMonitoringStopped();
     } catch (e) {
-      AppLogger.warning('Erro ao exibir notificação de parada',
+      LoggerService.warning('Erro ao exibir notificação de parada',
           tag: 'ExposureProvider', error: e);
     }
 
@@ -551,7 +539,7 @@ class ExposureProvider extends ChangeNotifier {
         await NotificationService.showExposureWarning(
             _model.accumulatedExposurePercent);
       } catch (e) {
-        AppLogger.warning('Erro ao exibir notificação de aviso',
+        LoggerService.warning('Erro ao exibir notificação de aviso',
             tag: 'ExposureProvider', error: e);
       }
     }
@@ -566,7 +554,7 @@ class ExposureProvider extends ChangeNotifier {
       try {
         await NotificationService.showExposureCritical();
       } catch (e) {
-        AppLogger.warning('Erro ao exibir notificação crítica',
+        LoggerService.warning('Erro ao exibir notificação crítica',
             tag: 'ExposureProvider', error: e);
       }
     }
@@ -579,7 +567,7 @@ class ExposureProvider extends ChangeNotifier {
       _alarmActive = true;
       notifyListeners();
     } catch (e) {
-      AppLogger.error('Erro ao reproduzir alarme',
+      LoggerService.error('Erro ao reproduzir alarme',
           tag: 'ExposureProvider', error: e);
     }
   }
@@ -604,6 +592,10 @@ class ExposureProvider extends ChangeNotifier {
   Future<void> _saveSession() async {
     if (_currentSessionId == null || _sessionStartTime == null) return;
 
+    final avgExposure = _exposureSampleCount > 0
+        ? _exposureSampleSum / _exposureSampleCount
+        : _model.accumulatedExposurePercent;
+
     final session = ExposureSession(
       id: _currentSessionId!,
       startTime: _sessionStartTime!,
@@ -611,6 +603,7 @@ class ExposureProvider extends ChangeNotifier {
       spf: _spf,
       skinType: _skinType,
       maxExposurePercent: _model.accumulatedExposurePercent,
+      averageExposurePercent: avgExposure,
       maxUVIndex: _maxUVIndex,
       readings: _sessionReadings,
     );
@@ -650,7 +643,7 @@ class ExposureProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      AppLogger.error('Erro ao restaurar sessão',
+      LoggerService.error('Erro ao restaurar sessão',
           tag: 'ExposureProvider', error: e);
       return false;
     }

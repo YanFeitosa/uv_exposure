@@ -243,12 +243,6 @@ class StorageService {
     return prefs.getBool(AppConstants.cacheKeySoundAlarm) ?? true;
   }
 
-  /// Salva o fototipo de pele do usuário
-  static Future<void> saveSkinType(String skinType) async {
-    final prefs = await _preferences;
-    await prefs.setString(AppConstants.cacheKeyDefaultSkinType, skinType);
-  }
-
   /// Recupera o fototipo de pele salvo (retorna null se não definido)
   static Future<String?> getSkinType() async {
     final prefs = await _preferences;

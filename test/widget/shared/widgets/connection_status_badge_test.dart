@@ -46,7 +46,7 @@ void main() {
       await tester.pumpWidget(buildBadge(provider));
       await tester.pump();
 
-      expect(find.text(AppStrings.offline), findsOneWidget);
+      expect(find.text(AppStrings.disconnected), findsOneWidget);
     });
 
     testWidgets('deve exibir "Conectado" em modo demo', (tester) async {
@@ -83,7 +83,7 @@ void main() {
       await tester.pumpWidget(buildBadge(provider));
       await tester.pump();
 
-      expect(find.text(AppStrings.cached), findsOneWidget);
+      expect(find.text(AppStrings.usingCache), findsOneWidget);
     });
   });
 }

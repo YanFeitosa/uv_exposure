@@ -15,7 +15,7 @@ class ExportService {
 
     // Cabeçalho
     buffer.writeln(
-      'ID,Início,Fim,Duração (min),Fototipo,FPS,Exposição Máx (%),UV Máx,Leituras',
+      'ID,Início,Fim,Duração (min),Fototipo,FPS,Exposição Méd (%),Exposição Máx (%),UV Máx,Leituras',
     );
 
     for (final s in sessions) {
@@ -28,7 +28,7 @@ class ExportService {
 
       buffer.writeln(
         '${s.id},$start,$end,$durationMin,$skinType,${s.spf.toInt()},'
-        '${s.maxExposurePercent.toStringAsFixed(1)},${s.maxUVIndex.toStringAsFixed(1)},'
+        '${s.averageExposurePercent.toStringAsFixed(1)},${s.maxExposurePercent.toStringAsFixed(1)},${s.maxUVIndex.toStringAsFixed(1)},'
         '${s.readings.length}',
       );
     }
@@ -124,6 +124,5 @@ class ExportAndShareResult {
 
   bool get wasShared => shareResult.status == ShareResultStatus.success;
   bool get wasDismissed => shareResult.status == ShareResultStatus.dismissed;
-  bool get isUnavailable =>
-      shareResult.status == ShareResultStatus.unavailable;
+  bool get isUnavailable => shareResult.status == ShareResultStatus.unavailable;
 }

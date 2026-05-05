@@ -19,18 +19,7 @@ class AppStrings {
   static const String soundAlarmDescription =
       'Toca sirene ao atingir 100% de exposição';
 
-  // Popup de fototipo (primeira abertura)
-  static const String skinTypePopupTitle = 'Selecione seu Fototipo de Pele';
-  static const String skinTypePopupBody =
-      'Para estimar o tempo limite de exposição solar, '
-      'precisamos saber seu fototipo de pele.\n\n'
-      'Você pode alterar essa opção depois em Configurações.';
-  static const String save = 'Salvar';
-
   // Popup de iniciar monitoramento
-  static const String startMonitoringTitle = 'Iniciar Monitoramento';
-  static const String selectSpfMessage =
-      'Selecione o fator de proteção solar que está usando:';
   static const String start = 'Iniciar';
 
   // Tela de Monitoramento
@@ -44,11 +33,11 @@ class AppStrings {
   static const String confirm = 'Confirmar';
   static const String cancel = 'Cancelar';
   static const String confirmBackMessage =
-      'O monitoramento será reiniciado. Tem certeza que deseja voltar?';
+      'O monitoramento será encerrado. Tem certeza que deseja voltar?';
   static const String stopAlarm = 'Parar Alarme';
   static const String demoBannerText = 'MODO DEMO — Dados UV simulados';
   static const String monitoringPaused = 'Monitoramento Pausado';
-  static const String retryReconnect = 'Tentar Reconectar';
+  static const String retryReconnect = 'Tentar reconectar';
   static const String connectionLostUsingCache =
       'Conexão perdida - Usando cache';
 
@@ -63,13 +52,10 @@ class AppStrings {
   static const String connected = 'Conectado';
   static const String disconnected = 'Desconectado';
   static const String connecting = 'Conectando';
-  static const String cached = 'Cache';
-  static const String offline = 'Offline';
+  static const String usingCache = 'Usando cache';
   static const String deviceNotFound =
       'Dispositivo não encontrado. Verifique se está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String retryConnection = 'Tentar reconectar';
-  static const String cachedDataMessage =
-      'Usando dados em cache. Dispositivo inacessível.';
 
   // Diálogo de Permissão de Notificação
   static const String notificationsDialogTitle = 'Notificações';
@@ -79,7 +65,6 @@ class AppStrings {
       'Isso ajuda a proteger sua pele de queimaduras.';
   static const String later = 'Depois';
   static const String allow = 'Permitir';
-  static const String demoMode = 'Modo Demo';
   static const String wifiInfoMessage =
       'Certifique-se de que seu celular está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String spfPrefix = 'FPS';
@@ -127,7 +112,6 @@ class AppStrings {
   static const String yesterday = 'Ontem';
   static const String atTime = 'às';
   static const String last7Days = 'Últimos 7 Dias';
-  static const String last30Days = 'Últimos 30 Dias';
   static const String statistics = 'Estatísticas';
   static const String sessions = 'Sessões';
   static const String averageExposure = 'Exp. Média';
@@ -140,8 +124,6 @@ class AppStrings {
   // Mensagens de Erro e Status
   static const String monitoringStoppedNoConnection =
       'Monitoramento pausado: sem conexão por {minutes} minutos';
-  static const String monitoringWillPauseIn =
-      'O monitoramento será pausado em {minutes}m {seconds}s';
   static const String noConnectionRetryMessage =
       'Sem conexão com o dispositivo por mais de {minutes} minutos.\n'
       'Reconecte-se à rede WiFi do SunSense e tente novamente.';
