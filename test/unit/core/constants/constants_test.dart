@@ -32,7 +32,8 @@ void main() {
 
     test('defaultTEP deve ser valor válido e razoável', () {
       expect(AppConstants.defaultTEP, greaterThan(0));
-      expect(AppConstants.defaultTEP, equals(15.0)); // Tipo II
+      expect(AppConstants.defaultTEP,
+          equals(166.7)); // Tipo II - Clara (ICNIRP, 2010)
     });
   });
 

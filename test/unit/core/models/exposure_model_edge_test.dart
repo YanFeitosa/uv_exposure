@@ -28,19 +28,20 @@ void main() {
   });
 
   group('ExposureModel — borda: calculateInitialSafeExposureTime', () {
-    test('UV=0 deve retornar tempo máximo (sem radiação, sem consumo)', () {
+    test('UV=0 deve usar UV=1 como fallback', () {
       final model = ExposureModel(spf: 30, skinType: 'Tipo II - Clara');
       expect(model.calculateInitialSafeExposureTime(0.0), greaterThan(0));
     });
 
-    test('UV negativo deve retornar tempo máximo (tratado como UV mínimo)', () {
+    test('UV negativo deve usar UV=1 como fallback', () {
       final model = ExposureModel(spf: 30, skinType: 'Tipo II - Clara');
       expect(model.calculateInitialSafeExposureTime(-3.0), greaterThan(0));
     });
 
-    test('UV muito alto (15+) deve retornar tempo muito curto', () {
+    test('UV muito alto (15+) deve retornar tempo curto', () {
       final model = ExposureModel(spf: 1, skinType: 'Tipo I - Muito Clara');
       final time = model.calculateInitialSafeExposureTime(15.0);
+      // (1 * 133.3 / 15) * 60 = 533s
       expect(time, greaterThan(0));
       expect(time, lessThan(600));
     });
@@ -64,7 +65,7 @@ void main() {
       for (int i = 0; i < 3600; i++) {
         model.accumulateExposure(5.0, 1);
       }
-      const expected = (5.0 * 3600) / (15.0 * 30.0 * 60.0) * 100;
+      const expected = (5.0 * 3600) / (166.7 * 30.0 * 60.0) * 100;
       expect(model.accumulatedExposurePercent,
           closeTo(expected, expected * 0.001));
     });

@@ -147,9 +147,9 @@ class ExposureModel {
   /// Retorna a porcentagem de exposição acumulada
   double get accumulatedExposurePercent => _accumulatedExposurePercent;
 
-  /// Calcula o tempo inicial de exposição segura baseado no índice UV atual
+  /// Calcula o tempo estimado até limite de exposição baseado no índice UV atual.
   ///
-  /// Retorna o tempo em segundos: (SPF × TEP) / UV
+  /// Retorna o tempo em segundos: (SPF × TEP) / UV × 60.
   int calculateInitialSafeExposureTime(double uvIndex) {
     if (uvIndex <= 0) uvIndex = 1;
     final safeTimeSeconds = ((_spf * _tep) / uvIndex) * 60;

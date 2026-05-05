@@ -175,6 +175,20 @@ class ExposureProvider extends ChangeNotifier {
     return remaining > 0 ? remaining : 0;
   }
 
+  /// Tempo restante formatado para exibição na UI.
+  ///
+  /// Retorna [AppStrings.safeTimeUVZero] quando IUV = 0 e nenhuma exposição
+  /// foi acumulada ainda. Retorna [AppStrings.safeTimeAboveLimit] quando o
+  /// tempo restante calculado excede [AppConstants.maxDisplayedSafeTimeMinutes].
+  /// Não afeta os cálculos internos de exposição acumulada.
+  String get displayRemainingTime {
+    final remaining = _model.calculateRemainingSafeTime(_secondsElapsed);
+    if (remaining <= 0) return '00:00:00';
+    const cap = AppConstants.maxDisplayedSafeTimeMinutes * 60;
+    if (remaining > cap) return AppStrings.safeTimeAboveLimit;
+    return formatTime(remaining);
+  }
+
   /// Inicializa o provider com as configurações do usuário
   void initialize({required double spf, required String skinType}) {
     _spf = spf;

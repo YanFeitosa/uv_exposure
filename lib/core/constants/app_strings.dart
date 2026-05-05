@@ -22,7 +22,7 @@ class AppStrings {
   // Popup de fototipo (primeira abertura)
   static const String skinTypePopupTitle = 'Selecione seu Fototipo de Pele';
   static const String skinTypePopupBody =
-      'Para calcular o tempo seguro de exposição solar, '
+      'Para estimar o tempo limite de exposição solar, '
       'precisamos saber seu fototipo de pele.\n\n'
       'Você pode alterar essa opção depois em Configurações.';
   static const String save = 'Salvar';
@@ -35,9 +35,12 @@ class AppStrings {
 
   // Tela de Monitoramento
   static const String elapsedTime = 'Tempo Decorrido';
-  static const String safeExposureTime = 'Tempo Seguro';
+  static const String safeExposureTime = 'Tempo Estimado';
   static const String accumulatedExposure = 'Exposição Acumulada';
   static const String globalUVIndex = 'Índice UV Global';
+
+  // Exibição do tempo estimado (limites de UI)
+  static const String safeTimeAboveLimit = 'Acima de 12h';
   static const String confirm = 'Confirmar';
   static const String cancel = 'Cancelar';
   static const String confirmBackMessage =
@@ -103,9 +106,9 @@ class AppStrings {
   static const String exposureWarningTitle = 'Aviso de Exposição UV';
   static const String exposureCriticalTitle = 'Exposição UV Crítica!';
   static const String exposureWarningBody =
-      'Você atingiu {percent}% do tempo seguro de exposição.';
+      'Você atingiu {percent}% do tempo estimado de exposição.';
   static const String exposureCriticalBody =
-      'Procure sombra imediatamente! Exposição máxima segura atingida.';
+      'Procure sombra imediatamente! Limite estimado de exposição atingido.';
 
   // Notificações de Conexão/Cache
   static const String cacheNotificationTitle = 'Conexão Perdida com o Sensor';
@@ -178,7 +181,8 @@ class AppStrings {
   static const String exportError = 'Erro ao exportar dados';
   static const String exportNoData = 'Nenhum dado para exportar';
   static const String exportFileSaved = 'Arquivo salvo em:';
-  static const String exportShareSubject = 'Histórico de exposição UV — SunSense';
+  static const String exportShareSubject =
+      'Histórico de exposição UV — SunSense';
   static const String exportShareText =
       'Segue o histórico de exposição UV exportado pelo aplicativo SunSense.';
   static const String exportShared = 'Arquivo compartilhado';
@@ -194,8 +198,9 @@ class AppStrings {
       'de exposição à radiação ultravioleta.';
   static const String aboutDisclaimer =
       'AVISO: Este aplicativo NÃO substitui orientação médica profissional. '
-      'Os cálculos de tempo seguro de exposição são estimativas baseadas em '
-      'modelos simplificados e não consideram todos os fatores individuais.\n\n'
+      'Os cálculos de tempo estimado de exposição são estimativas baseadas em '
+      'modelos simplificados (fototipo, FPS e Índice UV) e não consideram todos os fatores individuais. '
+      'A estimativa não substitui orientação médica e recomenda-se fotoproteção em exposição prolongada.\n\n'
       'Consulte sempre um dermatologista para orientações sobre proteção solar.';
   static const String aboutTechnology =
       'Tecnologias: Flutter, ESP32, Sensor VEML6075';

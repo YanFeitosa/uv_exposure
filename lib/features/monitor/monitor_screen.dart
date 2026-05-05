@@ -204,8 +204,7 @@ class _MonitorScreenState extends State<MonitorScreen>
 
                         InfoBox(
                           title: AppStrings.safeExposureTime,
-                          info: provider
-                              .formatTime(provider.remainingSafeExposureTime),
+                          info: provider.displayRemainingTime,
                           infoColor: AppColors.getExposureColor(
                             provider.accumulatedExposurePercent,
                           ),

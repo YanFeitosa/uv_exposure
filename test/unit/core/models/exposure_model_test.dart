@@ -15,7 +15,7 @@ void main() {
 
     group('inicialização', () {
       test('deve inicializar com TEP correto para o fototipo', () {
-        expect(model.tep, equals(15.0));
+        expect(model.tep, equals(166.7));
       });
 
       test('deve inicializar com SPF correto', () {
@@ -33,33 +33,33 @@ void main() {
         expect(m.tep, equals(0.1));
       });
 
-      test('Tipo I - Muito Clara: TEP = 7.5', () {
+      test('Tipo I - Muito Clara: TEP = 133.3', () {
         final m = ExposureModel(spf: 30, skinType: 'Tipo I - Muito Clara');
-        expect(m.tep, equals(7.5));
+        expect(m.tep, equals(133.3));
       });
 
-      test('Tipo II - Clara: TEP = 15.0', () {
-        expect(model.tep, equals(15.0));
+      test('Tipo II - Clara: TEP = 166.7', () {
+        expect(model.tep, equals(166.7));
       });
 
-      test('Tipo III - Média Clara: TEP = 25.0', () {
+      test('Tipo III - Média Clara: TEP = 266.7', () {
         final m = ExposureModel(spf: 30, skinType: 'Tipo III - Média Clara');
-        expect(m.tep, equals(25.0));
+        expect(m.tep, equals(266.7));
       });
 
-      test('Tipo IV - Média Escura: TEP = 35.0', () {
+      test('Tipo IV - Média Escura: TEP = 400.0', () {
         final m = ExposureModel(spf: 30, skinType: 'Tipo IV - Média Escura');
-        expect(m.tep, equals(35.0));
+        expect(m.tep, equals(400.0));
       });
 
-      test('Tipo V - Escura: TEP = 50.0', () {
+      test('Tipo V - Escura: TEP = 666.7', () {
         final m = ExposureModel(spf: 30, skinType: 'Tipo V - Escura');
-        expect(m.tep, equals(50.0));
+        expect(m.tep, equals(666.7));
       });
 
-      test('Tipo VI - Muito Escura: TEP = 75.0', () {
+      test('Tipo VI - Muito Escura: TEP = 1000.0', () {
         final m = ExposureModel(spf: 30, skinType: 'Tipo VI - Muito Escura');
-        expect(m.tep, equals(75.0));
+        expect(m.tep, equals(1000.0));
       });
 
       test('todos os fototipos do AppConstants devem estar cobertos', () {
@@ -71,8 +71,12 @@ void main() {
     });
 
     group('calculateInitialSafeExposureTime', () {
-      test('deve calcular tempo seguro corretamente para UV=5', () {
-        expect(model.calculateInitialSafeExposureTime(5.0), equals(5400));
+      // Tipo II, SPF 30, IUV 5: (30 * 166.7 / 5) * 60 = 60012
+      test('deve calcular tempo estimado corretamente para UV=5', () {
+        expect(
+          model.calculateInitialSafeExposureTime(5.0),
+          closeTo(60012, 5),
+        );
       });
 
       test('deve retornar valor menor para UV alto', () {
@@ -89,12 +93,38 @@ void main() {
         expect(time50, greaterThan(time15));
         expect((time50 / time15), closeTo(50.0 / 15.0, 0.1));
       });
+
+      // Cenário A: Tipo I, SPF 1, IUV 1 → (1 * 133.3 / 1) * 60 = 7998
+      test('A: Tipo I sem protetor, IUV 1 ≈ 7998s', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo I - Muito Clara');
+        expect(m.calculateInitialSafeExposureTime(1.0), closeTo(7998, 5));
+      });
+
+      // Cenário B: Tipo I, SPF 1, IUV 8 → (1 * 133.3 / 8) * 60 = 999.75 → 999
+      test('B: Tipo I sem protetor, IUV 8 ≈ 999s', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo I - Muito Clara');
+        expect(m.calculateInitialSafeExposureTime(8.0), closeTo(999, 2));
+      });
+
+      // Cenário C: Tipo II, SPF 1, IUV 1 → (1 * 166.7 / 1) * 60 = 10002
+      test('C: Tipo II sem protetor, IUV 1 ≈ 10002s', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo II - Clara');
+        expect(m.calculateInitialSafeExposureTime(1.0), closeTo(10002, 5));
+      });
+
+      // Cenário D: Tipo VI, SPF 1, IUV 10 → (1 * 1000.0 / 10) * 60 = 6000
+      test('D: Tipo VI sem protetor, IUV 10 = 6000s', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo VI - Muito Escura');
+        expect(m.calculateInitialSafeExposureTime(10.0), equals(6000));
+      });
     });
 
     group('accumulateExposure', () {
+      // (5.0 * 60) / (166.7 * 30 * 60) * 100 ≈ 0.100
       test('deve acumular exposição corretamente para UV=5, 60s', () {
         model.accumulateExposure(5.0, 60);
-        expect(model.accumulatedExposurePercent, closeTo(1.111, 0.01));
+        const expected = (5.0 * 60) / (166.7 * 30.0 * 60.0) * 100;
+        expect(model.accumulatedExposurePercent, closeTo(expected, 0.001));
       });
 
       test('deve acumular incrementalmente (múltiplas chamadas)', () {
@@ -119,8 +149,22 @@ void main() {
 
       test('deve funcionar com UV fracionário', () {
         model.accumulateExposure(3.7, 100);
-        const expected = (3.7 * 100) / (15.0 * 30.0 * 60.0) * 100;
+        const expected = (3.7 * 100) / (166.7 * 30.0 * 60.0) * 100;
         expect(model.accumulatedExposurePercent, closeTo(expected, 0.001));
+      });
+
+      // Cenário E: SPF 0 tratado como SPF 1
+      test('E: SPF 0 deve ser tratado como SPF 1 no cálculo', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo I - Muito Clara');
+        expect(m.spf, equals(1.0));
+      });
+
+      // Cenário G: Tipo I, SPF 1, IUV 1, após 7998s ≈ 100%
+      // (1 * 7998) / (133.3 * 1 * 60) * 100 = 7998 / 7998 * 100 = 100%
+      test('G: Tipo I, SPF 1, IUV 1, 7998s acumula ≈ 100%', () {
+        final m = ExposureModel(spf: 0, skinType: 'Tipo I - Muito Clara');
+        m.accumulateExposure(1.0, 7998);
+        expect(m.accumulatedExposurePercent, closeTo(100.0, 1.0));
       });
     });
 
@@ -163,11 +207,12 @@ void main() {
     });
 
     group('calculateSafeExposureTime', () {
-      test('deve estimar tempo total seguro após algum acúmulo', () {
+      // Tipo II, SPF 30, IUV 5: tempo total = (30*166.7/5)*60 = 60012s
+      test('deve estimar tempo total correto após algum acúmulo', () {
         model.accumulateExposure(5.0, 100);
         final totalSafe = model.calculateSafeExposureTime(100);
         expect(totalSafe, greaterThan(0));
-        expect(totalSafe, closeTo(5400, 50));
+        expect(totalSafe, closeTo(60012, 200));
       });
     });
 

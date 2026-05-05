@@ -17,15 +17,18 @@ class AppConstants {
   static const Duration dataFetchInterval = Duration(seconds: 5);
   static const Duration cacheIndicatorThreshold = Duration(seconds: 15);
 
-  // TEP (Tempo de Eritema Pele) por fototipo em minutos
+  // TEP/PTE em minutos para IUV = 1 e SPF = 1.
+  // Valores derivados de doses eritematosas em SED por fototipo,
+  // UVI 1 ≈ 0,9 SED/h.
+  // Fórmula: TEP = (SED_adotado / 0,9) × 60
   static const Map<String, double> tepBySkinType = {
     'Tipo 0 - Demo': 0.1,
-    'Tipo I - Muito Clara': 7.5,
-    'Tipo II - Clara': 15.0,
-    'Tipo III - Média Clara': 25.0,
-    'Tipo IV - Média Escura': 35.0,
-    'Tipo V - Escura': 50.0,
-    'Tipo VI - Muito Escura': 75.0,
+    'Tipo I - Muito Clara': 133.3,
+    'Tipo II - Clara': 166.7,
+    'Tipo III - Média Clara': 266.7,
+    'Tipo IV - Média Escura': 400.0,
+    'Tipo V - Escura': 666.7,
+    'Tipo VI - Muito Escura': 1000.0,
   };
 
   // Valores de SPF disponíveis (0 = sem protetor)
@@ -61,7 +64,11 @@ class AppConstants {
 
   // Valores padrão
   static const double defaultUVIndex = 1.0;
-  static const double defaultTEP = 15.0;
+  // Fallback: Tipo II - Clara (ICNIRP, 2010)
+  static const double defaultTEP = 166.7;
+
+  // Limite de exibição do tempo estimado na UI (apenas apresentação, não afeta o cálculo)
+  static const int maxDisplayedSafeTimeMinutes = 720; // 12 horas
   static const double minExposureThreshold = 0.0001;
   static const int saveProgressInterval = 30;
 
