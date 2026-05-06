@@ -22,9 +22,14 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _requestNotificationPermission();
-      await _requestBatteryOptimization();
       _checkPendingSession();
     });
+  }
+
+  Future<void> _onStartMonitoringPressed() async {
+    await _requestBatteryOptimization();
+    if (!mounted) return;
+    await _showStartMonitoringPopup();
   }
 
   // Popup para selecionar fototipo e SPF antes de iniciar monitoramento
@@ -205,9 +210,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final isIgnoring = await ForegroundService.isIgnoringBatteryOptimizations();
     if (isIgnoring) return;
 
-    final alreadyAsked = await StorageService.wasBatteryOptimizationAsked();
-    if (alreadyAsked) return;
-
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
 
@@ -237,7 +239,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    await StorageService.setBatteryOptimizationAsked();
     if (shouldRequest == true) {
       await ForegroundService.requestIgnoreBatteryOptimization();
     }
@@ -247,11 +248,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _requestNotificationPermission() async {
     if (kIsWeb) return;
 
-    final hasPermission = await NotificationService.areNotificationsEnabled();
-    if (hasPermission) return;
-
-    final alreadyAsked = await StorageService.wasNotificationPermissionAsked();
-    if (alreadyAsked) return;
+    // Se a permissão já foi concedida, não precisa pedir novamente
+    final alreadyEnabled = await NotificationService.areNotificationsEnabled();
+    if (alreadyEnabled) return;
 
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
@@ -282,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    await StorageService.setNotificationPermissionAsked();
     if (shouldRequest == true) {
       await NotificationService.requestPermission();
     }
@@ -364,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _showStartMonitoringPopup,
+                      onPressed: _onStartMonitoringPressed,
                       icon: const Icon(Icons.play_arrow),
                       label: const Text(AppStrings.startMonitoring),
                       style: ElevatedButton.styleFrom(
