@@ -35,6 +35,7 @@ void main() {
       skinType: skinType,
       maxExposurePercent: maxExposure,
       maxUVIndex: maxUV,
+      averageUVIndex: maxUV,
     );
   }
 

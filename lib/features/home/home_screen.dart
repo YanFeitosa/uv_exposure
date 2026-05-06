@@ -6,9 +6,8 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/exposure_provider.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/foreground_service.dart';
 import '../../core/services/storage_service.dart';
-import '../monitor/monitor_screen.dart';
-import '../settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,10 +20,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestNotificationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _requestNotificationPermission();
       _checkPendingSession();
     });
+  }
+
+  Future<void> _onStartMonitoringPressed() async {
+    await _requestBatteryOptimization();
+    if (!mounted) return;
+    await _showStartMonitoringPopup();
   }
 
   // Popup para selecionar fototipo e SPF antes de iniciar monitoramento
@@ -109,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: (selectedSpf != null && selectedSkinType != null)
                       ? () {
                           // Salva o fototipo escolhido para sugerir na próxima sessão
-                          StorageService.saveSkinType(selectedSkinType!);
+                          StorageService.saveUserPreferences(
+                              defaultSkinType: selectedSkinType!);
                           Navigator.of(ctx).pop();
                           _startMonitoring(
                             spf: double.parse(selectedSpf!),
@@ -159,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.restore, color: Colors.orange, size: 36),
+        icon: const Icon(Icons.restore, color: AppColors.warning, size: 36),
         title: const Text('Sessão Anterior Encontrada'),
         content: Text(
           'Existe uma sessão interrompida:\n\n'
@@ -192,11 +198,49 @@ class _HomeScreenState extends State<HomeScreen> {
       provider.initialize(spf: spf, skinType: skinType);
       final restored = await provider.restoreLastSession();
       if (restored && mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MonitorScreen()),
-        );
+        Navigator.pushNamed(context, '/monitor');
       }
+    }
+  }
+
+  // Isenção de otimização de bateria
+  Future<void> _requestBatteryOptimization() async {
+    if (kIsWeb) return;
+
+    final isIgnoring = await ForegroundService.isIgnoringBatteryOptimizations();
+    if (isIgnoring) return;
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: const Row(
+          children: [
+            Icon(Icons.battery_saver, color: AppColors.warning),
+            SizedBox(width: 8),
+            Flexible(child: Text(AppStrings.batteryDialogTitle)),
+          ],
+        ),
+        content: const Text(AppStrings.batteryDialogBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(AppStrings.later),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(AppStrings.batteryDialogAllow),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldRequest == true) {
+      await ForegroundService.requestIgnoreBatteryOptimization();
     }
   }
 
@@ -204,11 +248,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _requestNotificationPermission() async {
     if (kIsWeb) return;
 
-    final hasPermission = await NotificationService.areNotificationsEnabled();
-    if (hasPermission) return;
-
-    final alreadyAsked = await StorageService.wasNotificationPermissionAsked();
-    if (alreadyAsked) return;
+    // Se a permissão já foi concedida, não precisa pedir novamente
+    final alreadyEnabled = await NotificationService.areNotificationsEnabled();
+    if (alreadyEnabled) return;
 
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
@@ -217,11 +259,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Row(
           children: [
-            Icon(Icons.notifications_active, color: Colors.orange),
+            Icon(Icons.notifications_active, color: AppColors.warning),
             SizedBox(width: 8),
-            Text(AppStrings.notificationsDialogTitle),
+            Flexible(child: Text(AppStrings.notificationsDialogTitle)),
           ],
         ),
         content: const Text(AppStrings.notificationsDialogBody),
@@ -238,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    await StorageService.setNotificationPermissionAsked();
     if (shouldRequest == true) {
       await NotificationService.requestPermission();
     }
@@ -252,11 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.read<ExposureProvider>();
     provider.setDemoMode(demoMode);
     provider.initialize(spf: spf, skinType: skinType);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const MonitorScreen()),
-    );
+    Navigator.pushNamed(context, '/monitor');
   }
 
   @override
@@ -268,10 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              );
+              Navigator.pushNamed(context, '/settings');
             },
             tooltip: AppStrings.settings,
           ),
@@ -327,12 +362,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _showStartMonitoringPopup,
+                      onPressed: _onStartMonitoringPressed,
                       icon: const Icon(Icons.play_arrow),
                       label: const Text(AppStrings.startMonitoring),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.textOnSecondary,
                         padding: EdgeInsets.symmetric(
                           vertical: screenHeight * 0.02,
                         ),

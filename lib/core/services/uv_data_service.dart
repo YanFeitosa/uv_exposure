@@ -98,7 +98,6 @@ class UVDataService {
     for (final url in urls) {
       try {
         final response = await _httpClient.get(url, headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
         }).timeout(AppConstants.httpTimeout);
 
@@ -120,7 +119,7 @@ class UVDataService {
           );
         }
       } catch (e) {
-        AppLogger.warning('Falha ao buscar de $url',
+        LoggerService.warning('Falha ao buscar de $url',
             tag: 'UVDataService', error: e);
         lastError = e is Exception ? e : Exception(e.toString());
       }
@@ -180,34 +179,34 @@ class UVDataService {
         if (response.statusCode == 200) {
           _useFallbackIp =
               url.toString().contains(AppConstants.deviceFallbackIp);
-          AppLogger.info('Dispositivo acessível via $url',
+          LoggerService.info('Dispositivo acessível via $url',
               tag: 'UVDataService');
           return true;
         } else {
-          AppLogger.warning(
+          LoggerService.warning(
             '$url respondeu com status ${response.statusCode}',
             tag: 'UVDataService',
           );
         }
       } on TimeoutException {
-        AppLogger.warning(
+        LoggerService.warning(
           'Timeout ao verificar $url '
           '(${AppConstants.connectionCheckTimeout.inSeconds}s)',
           tag: 'UVDataService',
         );
       } on http.ClientException catch (e) {
-        AppLogger.warning('Erro de cliente HTTP em $url: ${e.message}',
+        LoggerService.warning('Erro de cliente HTTP em $url: ${e.message}',
             tag: 'UVDataService');
       } on FormatException catch (e) {
-        AppLogger.warning('URL malformada $url: ${e.message}',
+        LoggerService.warning('URL malformada $url: ${e.message}',
             tag: 'UVDataService');
       } catch (e) {
-        AppLogger.error('Erro inesperado ao verificar $url',
+        LoggerService.error('Erro inesperado ao verificar $url',
             tag: 'UVDataService', error: e);
       }
     }
 
-    AppLogger.warning('Dispositivo inacessível em todas as URLs',
+    LoggerService.warning('Dispositivo inacessível em todas as URLs',
         tag: 'UVDataService');
     return false;
   }

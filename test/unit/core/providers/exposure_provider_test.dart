@@ -164,7 +164,8 @@ void main() {
     test('initialSafeExposureTime deve refletir o modelo', () {
       final provider = ExposureProvider();
       provider.initialize(spf: 30, skinType: 'Tipo II - Clara');
-      expect(provider.initialSafeExposureTime, equals(27000));
+      // SPF=30, TEP=166.7 (ICNIRP 2010), IUV=1 → (30*166.7/1)*60 = 300060s
+      expect(provider.initialSafeExposureTime, equals(300060));
     });
 
     test('remainingSafeExposureTime deve ser >= 0', () {

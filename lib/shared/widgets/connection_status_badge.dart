@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/exposure_provider.dart';
 
@@ -23,29 +24,29 @@ class ConnectionStatusBadge extends StatelessWidget {
         String text;
 
         if (isConnecting) {
-          backgroundColor = Colors.blue.shade100;
-          borderColor = Colors.blue;
-          textColor = Colors.blue.shade700;
-          icon = Icons.sync;
+          backgroundColor = AppColors.connecting.withValues(alpha: 0.12);
+          borderColor = AppColors.connecting;
+          textColor = AppColors.connecting;
+          icon = Icons.wifi;
           text = AppStrings.connecting;
         } else if (isConnected) {
-          backgroundColor = Colors.green.shade100;
-          borderColor = Colors.green;
-          textColor = Colors.green.shade700;
+          backgroundColor = AppColors.connected.withValues(alpha: 0.12);
+          borderColor = AppColors.connected;
+          textColor = AppColors.connected;
           icon = Icons.wifi;
           text = AppStrings.connected;
         } else if (isUsingCache) {
-          backgroundColor = Colors.orange.shade100;
-          borderColor = Colors.orange;
-          textColor = Colors.orange.shade700;
+          backgroundColor = AppColors.usingCache.withValues(alpha: 0.12);
+          borderColor = AppColors.usingCache;
+          textColor = AppColors.usingCache;
           icon = Icons.cloud_off;
-          text = AppStrings.cached;
+          text = AppStrings.usingCache;
         } else {
-          backgroundColor = Colors.red.shade100;
-          borderColor = Colors.red;
-          textColor = Colors.red.shade700;
+          backgroundColor = AppColors.disconnected.withValues(alpha: 0.12);
+          borderColor = AppColors.disconnected;
+          textColor = AppColors.disconnected;
           icon = Icons.wifi_off;
-          text = AppStrings.offline;
+          text = AppStrings.disconnected;
         }
 
         return Container(

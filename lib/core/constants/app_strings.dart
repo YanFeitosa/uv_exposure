@@ -19,33 +19,25 @@ class AppStrings {
   static const String soundAlarmDescription =
       'Toca sirene ao atingir 100% de exposição';
 
-  // Popup de fototipo (primeira abertura)
-  static const String skinTypePopupTitle = 'Selecione seu Fototipo de Pele';
-  static const String skinTypePopupBody =
-      'Para calcular o tempo seguro de exposição solar, '
-      'precisamos saber seu fototipo de pele.\n\n'
-      'Você pode alterar essa opção depois em Configurações.';
-  static const String save = 'Salvar';
-
   // Popup de iniciar monitoramento
-  static const String startMonitoringTitle = 'Iniciar Monitoramento';
-  static const String selectSpfMessage =
-      'Selecione o fator de proteção solar que está usando:';
   static const String start = 'Iniciar';
 
   // Tela de Monitoramento
   static const String elapsedTime = 'Tempo Decorrido';
-  static const String safeExposureTime = 'Tempo Seguro';
+  static const String safeExposureTime = 'Tempo Estimado';
   static const String accumulatedExposure = 'Exposição Acumulada';
   static const String globalUVIndex = 'Índice UV Global';
+
+  // Exibição do tempo estimado (limites de UI)
+  static const String safeTimeAboveLimit = 'Acima de 12h';
   static const String confirm = 'Confirmar';
   static const String cancel = 'Cancelar';
   static const String confirmBackMessage =
-      'O monitoramento será reiniciado. Tem certeza que deseja voltar?';
+      'O monitoramento será encerrado. Tem certeza que deseja voltar?';
   static const String stopAlarm = 'Parar Alarme';
   static const String demoBannerText = 'MODO DEMO — Dados UV simulados';
   static const String monitoringPaused = 'Monitoramento Pausado';
-  static const String retryReconnect = 'Tentar Reconectar';
+  static const String retryReconnect = 'Tentar reconectar';
   static const String connectionLostUsingCache =
       'Conexão perdida - Usando cache';
 
@@ -60,13 +52,10 @@ class AppStrings {
   static const String connected = 'Conectado';
   static const String disconnected = 'Desconectado';
   static const String connecting = 'Conectando';
-  static const String cached = 'Cache';
-  static const String offline = 'Offline';
+  static const String usingCache = 'Usando cache';
   static const String deviceNotFound =
       'Dispositivo não encontrado. Verifique se está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String retryConnection = 'Tentar reconectar';
-  static const String cachedDataMessage =
-      'Usando dados em cache. Dispositivo inacessível.';
 
   // Diálogo de Permissão de Notificação
   static const String notificationsDialogTitle = 'Notificações';
@@ -76,7 +65,15 @@ class AppStrings {
       'Isso ajuda a proteger sua pele de queimaduras.';
   static const String later = 'Depois';
   static const String allow = 'Permitir';
-  static const String demoMode = 'Modo Demo';
+
+  // Diálogo de Isenção de Otimização de Bateria
+  static const String batteryDialogTitle = 'Otimização de Bateria';
+  static const String batteryDialogBody =
+      'O Android pode suspender o monitoramento UV quando o aplicativo '
+      'estiver em segundo plano.\n\n'
+      'Para garantir o monitoramento contínuo, permita que o SunSense '
+      'seja isento de otimizações de bateria.';
+  static const String batteryDialogAllow = 'Permitir';
   static const String wifiInfoMessage =
       'Certifique-se de que seu celular está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String spfPrefix = 'FPS';
@@ -103,9 +100,9 @@ class AppStrings {
   static const String exposureWarningTitle = 'Aviso de Exposição UV';
   static const String exposureCriticalTitle = 'Exposição UV Crítica!';
   static const String exposureWarningBody =
-      'Você atingiu {percent}% do tempo seguro de exposição.';
+      'Você atingiu {percent}% do tempo estimado de exposição.';
   static const String exposureCriticalBody =
-      'Procure sombra imediatamente! Exposição máxima segura atingida.';
+      'Procure sombra imediatamente! Limite estimado de exposição atingido.';
 
   // Notificações de Conexão/Cache
   static const String cacheNotificationTitle = 'Conexão Perdida com o Sensor';
@@ -124,7 +121,6 @@ class AppStrings {
   static const String yesterday = 'Ontem';
   static const String atTime = 'às';
   static const String last7Days = 'Últimos 7 Dias';
-  static const String last30Days = 'Últimos 30 Dias';
   static const String statistics = 'Estatísticas';
   static const String sessions = 'Sessões';
   static const String averageExposure = 'Exp. Média';
@@ -137,8 +133,6 @@ class AppStrings {
   // Mensagens de Erro e Status
   static const String monitoringStoppedNoConnection =
       'Monitoramento pausado: sem conexão por {minutes} minutos';
-  static const String monitoringWillPauseIn =
-      'O monitoramento será pausado em {minutes}m {seconds}s';
   static const String noConnectionRetryMessage =
       'Sem conexão com o dispositivo por mais de {minutes} minutos.\n'
       'Reconecte-se à rede WiFi do SunSense e tente novamente.';
@@ -178,6 +172,13 @@ class AppStrings {
   static const String exportError = 'Erro ao exportar dados';
   static const String exportNoData = 'Nenhum dado para exportar';
   static const String exportFileSaved = 'Arquivo salvo em:';
+  static const String exportShareSubject =
+      'Histórico de exposição UV — SunSense';
+  static const String exportShareText =
+      'Segue o histórico de exposição UV exportado pelo aplicativo SunSense.';
+  static const String exportShared = 'Arquivo compartilhado';
+  static const String exportShareDismissed =
+      'Compartilhamento cancelado. Arquivo salvo em:';
 
   // Tela Sobre
   static const String about = 'Sobre';
@@ -188,8 +189,9 @@ class AppStrings {
       'de exposição à radiação ultravioleta.';
   static const String aboutDisclaimer =
       'AVISO: Este aplicativo NÃO substitui orientação médica profissional. '
-      'Os cálculos de tempo seguro de exposição são estimativas baseadas em '
-      'modelos simplificados e não consideram todos os fatores individuais.\n\n'
+      'Os cálculos de tempo estimado de exposição são estimativas baseadas em '
+      'modelos simplificados (fototipo, FPS e Índice UV) e não consideram todos os fatores individuais. '
+      'A estimativa não substitui orientação médica e recomenda-se fotoproteção em exposição prolongada.\n\n'
       'Consulte sempre um dermatologista para orientações sobre proteção solar.';
   static const String aboutTechnology =
       'Tecnologias: Flutter, ESP32, Sensor VEML6075';

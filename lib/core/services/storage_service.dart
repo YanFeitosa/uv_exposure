@@ -217,6 +217,21 @@ class StorageService {
     await prefs.remove(_notificationPermissionAskedKey);
   }
 
+  static const String _batteryOptimizationAskedKey =
+      AppConstants.cacheKeyBatteryOptimizationAsked;
+
+  /// Verifica se já perguntamos ao usuário sobre isenção de bateria
+  static Future<bool> wasBatteryOptimizationAsked() async {
+    final prefs = await _preferences;
+    return prefs.getBool(_batteryOptimizationAskedKey) ?? false;
+  }
+
+  /// Marca que já perguntamos sobre isenção de bateria
+  static Future<void> setBatteryOptimizationAsked() async {
+    final prefs = await _preferences;
+    await prefs.setBool(_batteryOptimizationAskedKey, true);
+  }
+
   // Configurações do app
 
   /// Salva o estado do modo demo
@@ -241,12 +256,6 @@ class StorageService {
   static Future<bool> isSoundAlarmEnabled() async {
     final prefs = await _preferences;
     return prefs.getBool(AppConstants.cacheKeySoundAlarm) ?? true;
-  }
-
-  /// Salva o fototipo de pele do usuário
-  static Future<void> saveSkinType(String skinType) async {
-    final prefs = await _preferences;
-    await prefs.setString(AppConstants.cacheKeyDefaultSkinType, skinType);
   }
 
   /// Recupera o fototipo de pele salvo (retorna null se não definido)

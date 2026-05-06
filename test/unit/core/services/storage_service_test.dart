@@ -30,6 +30,7 @@ void main() {
       skinType: skinType,
       maxExposurePercent: maxExposure,
       maxUVIndex: maxUV,
+      averageUVIndex: maxUV,
     );
   }
 
@@ -132,6 +133,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 60,
         maxUVIndex: 8,
+        averageUVIndex: 7.5,
         readings: [
           UVReading(uvIndex: 7, timestamp: DateTime(2026, 3, 15, 10, 15)),
           UVReading(uvIndex: 8, timestamp: DateTime(2026, 3, 15, 10, 30)),
@@ -157,6 +159,7 @@ void main() {
           skinType: 'Tipo II - Clara',
           maxExposurePercent: 40,
           maxUVIndex: 5,
+          averageUVIndex: 5,
         ),
         ExposureSession(
           id: 'yesterday-1',
@@ -168,6 +171,7 @@ void main() {
           skinType: 'Tipo II - Clara',
           maxExposurePercent: 60,
           maxUVIndex: 7,
+          averageUVIndex: 7,
         ),
         ExposureSession(
           id: 'old-1',
@@ -179,6 +183,7 @@ void main() {
           skinType: 'Tipo II - Clara',
           maxExposurePercent: 80,
           maxUVIndex: 9,
+          averageUVIndex: 9,
         ),
       ];
       for (final s in sessions) {
@@ -247,8 +252,9 @@ void main() {
       expect(prefs['defaultSkinType'], isNull);
     });
 
-    test('deve salvar e recuperar fototipo via saveSkinType', () async {
-      await StorageService.saveSkinType('Tipo V - Escura');
+    test('deve salvar e recuperar fototipo via saveUserPreferences', () async {
+      await StorageService.saveUserPreferences(
+          defaultSkinType: 'Tipo V - Escura');
       final skinType = await StorageService.getSkinType();
       expect(skinType, equals('Tipo V - Escura'));
     });

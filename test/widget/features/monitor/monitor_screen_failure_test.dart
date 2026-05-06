@@ -128,7 +128,7 @@ void main() {
 
       expect(find.text(AppStrings.connectionLostUsingCache), findsOneWidget);
       expect(find.byTooltip(AppStrings.retryConnection), findsWidgets);
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
 
       await provider.stopMonitoring();
     });

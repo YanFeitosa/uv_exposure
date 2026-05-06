@@ -40,6 +40,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 45.5,
         maxUVIndex: 7.2,
+        averageUVIndex: 6.1,
         readings: [
           UVReading(uvIndex: 5.0, timestamp: DateTime(2026, 4, 10, 10, 5)),
           UVReading(uvIndex: 7.2, timestamp: DateTime(2026, 4, 10, 10, 30)),
@@ -53,6 +54,7 @@ void main() {
         skinType: 'Tipo IV - Morena',
         maxExposurePercent: 20.3,
         maxUVIndex: 4.1,
+        averageUVIndex: 3.5,
         readings: [],
       ),
     ];
@@ -75,15 +77,20 @@ void main() {
       expect(lines[0], contains('FPS'));
       expect(lines[0], contains('Exposição'));
 
-      // Dados da primeira sessão
+      // Cabeçalho inclui a coluna Leituras
+      expect(lines[0], contains('Leituras'));
+
+      // Dados da primeira sessão (2 leituras)
       expect(lines[1], contains('1'));
       expect(lines[1], contains('30'));
       expect(lines[1], contains('45.5'));
       expect(lines[1], contains('7.2'));
+      expect(lines[1].split(',').last.trim(), equals('2'));
 
-      // Dados da segunda sessão
+      // Dados da segunda sessão (0 leituras)
       expect(lines[2], contains('2'));
       expect(lines[2], contains('50'));
+      expect(lines[2].split(',').last.trim(), equals('0'));
     });
 
     test('deve escapar skinType com vírgula', () async {
@@ -96,6 +103,7 @@ void main() {
           skinType: 'Tipo I, Muito Clara',
           maxExposurePercent: 10.0,
           maxUVIndex: 3.0,
+          averageUVIndex: 2.5,
           readings: [],
         ),
       ];

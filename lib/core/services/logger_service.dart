@@ -11,8 +11,8 @@ enum LogLevel {
 /// Logger estruturado para o SunSense.
 /// Centraliza logs com timestamp, nível e contexto,
 /// substituindo chamadas dispersas de debugPrint.
-class AppLogger {
-  AppLogger._();
+class LoggerService {
+  LoggerService._();
 
   static LogLevel _minLevel = LogLevel.debug;
 
@@ -32,8 +32,10 @@ class AppLogger {
   }
 
   /// Log de nível warning (situação inesperada, mas recuperável)
-  static void warning(String message, {String? tag, Object? error}) {
-    _log(LogLevel.warning, message, tag: tag, error: error);
+  static void warning(String message,
+      {String? tag, Object? error, StackTrace? stackTrace}) {
+    _log(LogLevel.warning, message,
+        tag: tag, error: error, stackTrace: stackTrace);
   }
 
   /// Log de nível error (falha que requer atenção)

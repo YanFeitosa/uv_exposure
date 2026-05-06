@@ -11,6 +11,7 @@ import 'package:uv_exposure_app/core/constants/app_strings.dart';
 import 'package:uv_exposure_app/core/providers/exposure_provider.dart';
 import 'package:uv_exposure_app/core/providers/history_provider.dart';
 import 'package:uv_exposure_app/core/services/storage_service.dart';
+import 'package:uv_exposure_app/core/services/notification_service.dart';
 import 'package:uv_exposure_app/features/home/home_screen.dart';
 import 'package:uv_exposure_app/features/settings/settings_screen.dart';
 
@@ -26,9 +27,8 @@ void main() {
 
   setUp(() async {
     StorageService.resetForTest();
-    SharedPreferences.setMockInitialValues({
-      'notification_permission_asked': true,
-    });
+    NotificationService.initForTest();
+    SharedPreferences.setMockInitialValues({});
     await StorageService.init();
   });
 
@@ -43,6 +43,8 @@ void main() {
         routes: {
           '/history': (_) => const Scaffold(body: Text('History')),
           '/about': (_) => const Scaffold(body: Text('About')),
+          '/monitor': (_) => const Scaffold(body: Text(AppStrings.elapsedTime)),
+          '/settings': (_) => const SettingsScreen(),
         },
       ),
     );

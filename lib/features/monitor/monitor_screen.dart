@@ -25,11 +25,13 @@ class _MonitorScreenState extends State<MonitorScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Inicia monitoramento após construção do widget
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<ExposureProvider>();
       if (!provider.isMonitoring) {
-        provider.startMonitoring();
+        final started = await provider.startMonitoring();
+        if (!started && mounted) {
+          _showConnectionFailedDialog();
+        }
       }
     });
   }
@@ -51,6 +53,47 @@ class _MonitorScreenState extends State<MonitorScreen>
         provider.retryConnection();
       }
     }
+  }
+
+  void _showConnectionFailedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Sensor não encontrado'),
+        content: const Text(
+          'Não foi possível estabelecer conexão com o dispositivo. '
+          'Verifique se o SunSense está ligado e na mesma rede.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Voltar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<ExposureProvider>().startMonitoring(force: true);
+            },
+            child: const Text('Continuar mesmo assim'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final provider = context.read<ExposureProvider>();
+              final started = await provider.startMonitoring();
+              if (!started && mounted) {
+                _showConnectionFailedDialog();
+              }
+            },
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> _onWillPop() async {
@@ -154,21 +197,21 @@ class _MonitorScreenState extends State<MonitorScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade100,
+                              color: AppColors.warningBackground,
                               borderRadius: BorderRadius.circular(8),
-                              border:
-                                  Border.all(color: Colors.orange, width: 2),
+                              border: Border.all(
+                                  color: AppColors.warning, width: 2),
                             ),
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.science,
-                                    color: Colors.orange, size: 20),
+                                    color: AppColors.warning, size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   AppStrings.demoBannerText,
                                   style: TextStyle(
-                                    color: Colors.orange,
+                                    color: AppColors.warning,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                   ),
@@ -204,8 +247,7 @@ class _MonitorScreenState extends State<MonitorScreen>
 
                         InfoBox(
                           title: AppStrings.safeExposureTime,
-                          info: provider
-                              .formatTime(provider.remainingSafeExposureTime),
+                          info: provider.displayRemainingTime,
                           infoColor: AppColors.getExposureColor(
                             provider.accumulatedExposurePercent,
                           ),
@@ -242,8 +284,8 @@ class _MonitorScreenState extends State<MonitorScreen>
                             icon: const Icon(Icons.volume_off),
                             label: const Text(AppStrings.stopAlarm),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.error,
+                              foregroundColor: AppColors.textOnSecondary,
                             ),
                           ),
 
@@ -263,8 +305,8 @@ class _MonitorScreenState extends State<MonitorScreen>
                             icon: const Icon(Icons.stop),
                             label: const Text(AppStrings.endMonitoring),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red,
-                              side: const BorderSide(color: Colors.red),
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
                               padding: EdgeInsets.symmetric(
                                 vertical: screenHeight * 0.015,
                               ),
@@ -290,46 +332,32 @@ class _MonitorScreenState extends State<MonitorScreen>
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: provider.connectionStatus == ConnectionStatus.usingCache
-            ? Colors.blue.shade100
-            : Colors.orange.shade100,
+        color: AppColors.warningBackground,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: provider.connectionStatus == ConnectionStatus.usingCache
-              ? Colors.blue
-              : Colors.orange,
+          color: AppColors.warning,
         ),
       ),
       child: Row(
         children: [
-          Icon(
-            provider.connectionStatus == ConnectionStatus.usingCache
-                ? Icons.cloud_off
-                : Icons.warning_amber,
-            color: provider.connectionStatus == ConnectionStatus.usingCache
-                ? Colors.blue
-                : Colors.orange,
+          const Icon(
+            Icons.warning_amber,
+            color: AppColors.warning,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              provider.connectionStatus == ConnectionStatus.usingCache
-                  ? AppStrings.cachedDataMessage
-                  : provider.connectionError!,
-              style: TextStyle(
-                color: provider.connectionStatus == ConnectionStatus.usingCache
-                    ? Colors.blue.shade800
-                    : Colors.orange.shade800,
+              provider.connectionError ?? AppStrings.deviceNotFound,
+              style: const TextStyle(
+                color: AppColors.warningTextStrong,
                 fontSize: 12,
               ),
             ),
           ),
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.refresh,
-              color: provider.connectionStatus == ConnectionStatus.usingCache
-                  ? Colors.blue
-                  : Colors.orange,
+              color: AppColors.warning,
             ),
             onPressed: provider.retryConnection,
             tooltip: AppStrings.retryConnection,
@@ -349,65 +377,41 @@ class _MonitorScreenState extends State<MonitorScreen>
 
   /// Banner de aviso quando usando dados do cache
   Widget _buildCacheWarningBanner(ExposureProvider provider) {
-    final remainingMinutes = provider.cacheTimeRemaining ~/ 60;
-    final remainingSeconds = provider.cacheTimeRemaining % 60;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.shade100,
+        color: AppColors.warningBackground,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange, width: 2),
+        border: Border.all(color: AppColors.warning, width: 2),
       ),
       child: Column(
         children: [
           Row(
             children: [
-              const Icon(Icons.wifi_off, color: Colors.orange, size: 28),
+              const Icon(Icons.wifi_off, color: AppColors.warning, size: 28),
               const SizedBox(width: 8),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       AppStrings.connectionLostUsingCache,
                       style: TextStyle(
-                        color: Colors.orange,
+                        color: AppColors.warning,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppStrings.monitoringWillPauseIn
-                          .replaceAll('{minutes}', '$remainingMinutes')
-                          .replaceAll('{seconds}', '$remainingSeconds'),
-                      style: TextStyle(
-                        color: Colors.orange.shade800,
-                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.orange),
+                icon: const Icon(Icons.refresh, color: AppColors.warning),
                 onPressed: provider.retryConnection,
                 tooltip: AppStrings.retryConnection,
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: provider.cacheTimeRemaining /
-                  AppConstants.cacheExpiration.inSeconds,
-              backgroundColor: Colors.orange.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade600),
-              minHeight: 6,
-            ),
           ),
         ],
       ),
@@ -444,7 +448,7 @@ class _MonitorScreenState extends State<MonitorScreen>
         return AlertDialog(
           icon: Icon(
             provider.gapExceededMax ? Icons.warning_amber : Icons.info_outline,
-            color: provider.gapExceededMax ? Colors.orange : Colors.blue,
+            color: provider.gapExceededMax ? AppColors.warning : AppColors.info,
             size: 36,
           ),
           title: const Text(AppStrings.gapDialogTitle),
@@ -455,11 +459,11 @@ class _MonitorScreenState extends State<MonitorScreen>
               Text(body),
               if (Platform.isAndroid) ...[
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   AppStrings.gapDialogBatteryHint,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textSubtle,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -494,21 +498,21 @@ class _MonitorScreenState extends State<MonitorScreen>
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.shade100,
+        color: AppColors.errorBackground,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red, width: 2),
+        border: Border.all(color: AppColors.error, width: 2),
       ),
       child: Column(
         children: [
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 32),
+              Icon(Icons.error_outline, color: AppColors.error, size: 32),
               SizedBox(width: 8),
               Text(
                 AppStrings.monitoringPaused,
                 style: TextStyle(
-                  color: Colors.red,
+                  color: AppColors.error,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -520,8 +524,8 @@ class _MonitorScreenState extends State<MonitorScreen>
             AppStrings.noConnectionRetryMessage.replaceAll(
                 '{minutes}', '${AppConstants.cacheExpiration.inMinutes}'),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.red.shade800,
+            style: const TextStyle(
+              color: AppColors.errorDark,
               fontSize: 13,
             ),
           ),
@@ -531,14 +535,14 @@ class _MonitorScreenState extends State<MonitorScreen>
               final reconnected = await provider.retryConnection();
               if (!context.mounted) return;
               if (reconnected) {
-                provider.startMonitoring();
+                provider.startMonitoring(force: true);
               }
             },
             icon: const Icon(Icons.refresh),
             label: const Text(AppStrings.retryReconnect),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.textOnSecondary,
             ),
           ),
         ],

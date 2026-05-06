@@ -73,8 +73,8 @@ void main() {
       expect(color.toARGB32(), equals(AppColors.exposureSafe.toARGB32()));
     });
 
-    test('50% de exposição deve ser amarelo', () {
-      final color = AppColors.getExposureColor(50);
+    test('75% de exposição deve ser amarelo', () {
+      final color = AppColors.getExposureColor(75);
       expect(color.toARGB32(), equals(AppColors.exposureWarning.toARGB32()));
     });
 
@@ -135,7 +135,7 @@ void main() {
 
     test('cores de exposição devem seguir semáforo', () {
       expect(AppColors.exposureSafe, equals(Colors.green));
-      expect(AppColors.exposureWarning, equals(Colors.yellow));
+      expect(AppColors.exposureWarning, equals(const Color(0xFFE6B800)));
       expect(AppColors.exposureDanger, equals(Colors.red));
     });
   });

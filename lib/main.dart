@@ -12,6 +12,7 @@ import 'features/home/home_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/about/about_screen.dart';
+import 'features/monitor/monitor_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,7 @@ void main() async {
   try {
     await StorageService.init();
   } catch (e) {
-    AppLogger.error('Falha ao inicializar StorageService',
+    LoggerService.error('Falha ao inicializar StorageService',
         tag: 'Main', error: e);
   }
 
@@ -29,7 +30,7 @@ void main() async {
     try {
       await NotificationService.init();
     } catch (e) {
-      AppLogger.error('Falha ao inicializar NotificationService',
+      LoggerService.error('Falha ao inicializar NotificationService',
           tag: 'Main', error: e);
     }
   }
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const HomeScreen(),
+          '/monitor': (context) => const MonitorScreen(),
           '/history': (context) => const HistoryScreen(),
           '/settings': (context) => const SettingsScreen(),
           '/about': (context) => const AboutScreen(),

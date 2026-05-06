@@ -16,6 +16,7 @@ void main() {
     String skinType = 'Tipo II - Clara',
     double maxExposure = 50,
     double maxUV = 7,
+    double? averageExposure,
   }) {
     return ExposureSession(
       id: id,
@@ -25,6 +26,8 @@ void main() {
       skinType: skinType,
       maxExposurePercent: maxExposure,
       maxUVIndex: maxUV,
+      averageUVIndex: maxUV,
+      averageExposurePercent: averageExposure ?? maxExposure,
     );
   }
 
@@ -71,7 +74,7 @@ void main() {
 
       expect(stats['totalSessions'], equals(1));
       expect(stats['totalDuration'], equals(const Duration(hours: 2)));
-      expect(stats['averageExposure'], equals(60.0));
+      expect(stats['averageExposure'], closeTo(60.0, 0.01));
       expect(stats['maxExposure'], equals(60.0));
     });
 
@@ -97,9 +100,11 @@ void main() {
 
       expect(stats['totalSessions'], equals(2));
       expect(stats['totalDuration'], equals(const Duration(hours: 3)));
-      expect(stats['averageExposure'], closeTo(60.0, 0.01));
+      // média ponderada: (40*3600 + 80*7200) / 10800 ≈ 66.67
+      expect(stats['averageExposure'], closeTo(66.67, 0.01));
       expect(stats['maxExposure'], equals(80.0));
-      expect(stats['averageUVIndex'], closeTo(8.0, 0.01));
+      // média ponderada: (6*3600 + 10*7200) / 10800 ≈ 8.67
+      expect(stats['averageUVIndex'], closeTo(8.67, 0.01));
       expect(stats['maxUVIndex'], equals(10.0));
     });
   });
@@ -160,7 +165,8 @@ void main() {
 
       final todayData = data.last;
       expect(todayData['sessions'], equals(2));
-      expect(todayData['exposure'], equals(80.0));
+      // Média ponderada pelo tempo: (30×3600 + 50×7200) / (3600+7200) = 43.3̄
+      expect(todayData['exposure'], closeTo(43.33, 0.01));
       expect(todayData['maxUVIndex'], equals(9.0));
     });
   });

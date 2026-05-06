@@ -5,30 +5,30 @@ void main() {
   group('AppLogger', () {
     test('setMinLevel deve filtrar logs abaixo do nível', () {
       // Não lança exceção ao usar qualquer nível de log
-      AppLogger.setMinLevel(LogLevel.error);
-      AppLogger.debug('debug ignorado');
-      AppLogger.info('info ignorado');
-      AppLogger.warning('warning ignorado');
-      AppLogger.error('error exibido');
+      LoggerService.setMinLevel(LogLevel.error);
+      LoggerService.debug('debug ignorado');
+      LoggerService.info('info ignorado');
+      LoggerService.warning('warning ignorado');
+      LoggerService.error('error exibido');
     });
 
     test('debug deve aceitar tag opcional', () {
-      AppLogger.setMinLevel(LogLevel.debug);
+      LoggerService.setMinLevel(LogLevel.debug);
       // Não deve lançar exceção
-      AppLogger.debug('mensagem', tag: 'TestTag');
+      LoggerService.debug('mensagem', tag: 'TestTag');
     });
 
     test('warning deve aceitar error opcional', () {
-      AppLogger.setMinLevel(LogLevel.debug);
-      AppLogger.warning('algo errado', error: Exception('teste'));
+      LoggerService.setMinLevel(LogLevel.debug);
+      LoggerService.warning('algo errado', error: Exception('teste'));
     });
 
     test('error deve aceitar stackTrace opcional', () {
-      AppLogger.setMinLevel(LogLevel.debug);
+      LoggerService.setMinLevel(LogLevel.debug);
       try {
         throw Exception('erro teste');
       } catch (e, st) {
-        AppLogger.error('falha', error: e, stackTrace: st);
+        LoggerService.error('falha', error: e, stackTrace: st);
       }
     });
 
@@ -41,7 +41,7 @@ void main() {
 
     tearDown(() {
       // Restaura nível padrão
-      AppLogger.setMinLevel(LogLevel.debug);
+      LoggerService.setMinLevel(LogLevel.debug);
     });
   });
 }

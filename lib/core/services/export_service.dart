@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/exposure_model.dart';
 
 /// Serviço responsável por exportar sessões de exposição em CSV ou JSON.
@@ -13,7 +15,7 @@ class ExportService {
 
     // Cabeçalho
     buffer.writeln(
-      'ID,Início,Fim,Duração (min),Fototipo,FPS,Exposição Máx (%),UV Máx',
+      'ID,Início,Fim,Duração (min),Fototipo,FPS,Exposição Méd (%),Exposição Máx (%),UV Máx,Leituras',
     );
 
     for (final s in sessions) {
@@ -26,7 +28,8 @@ class ExportService {
 
       buffer.writeln(
         '${s.id},$start,$end,$durationMin,$skinType,${s.spf.toInt()},'
-        '${s.maxExposurePercent.toStringAsFixed(1)},${s.maxUVIndex.toStringAsFixed(1)}',
+        '${s.averageExposurePercent.toStringAsFixed(1)},${s.maxExposurePercent.toStringAsFixed(1)},${s.maxUVIndex.toStringAsFixed(1)},'
+        '${s.readings.length}',
       );
     }
 
@@ -54,10 +57,72 @@ class ExportService {
     return file.path;
   }
 
+  /// Abre a bottom sheet nativa do sistema para compartilhar o arquivo.
+  ///
+  /// Em plataformas sem suporte a share (testes, desktop sem integração),
+  /// a chamada falha silenciosamente e o caller pode usar o [path] como
+  /// fallback para mostrar ao usuário.
+  static Future<ShareResult> shareFile(
+    String path, {
+    String? subject,
+    String? text,
+  }) async {
+    try {
+      return await Share.shareXFiles(
+        [XFile(path)],
+        subject: subject,
+        text: text,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('ExportService.shareFile falhou: $e');
+      }
+      return const ShareResult(
+        'Compartilhamento indisponível',
+        ShareResultStatus.unavailable,
+      );
+    }
+  }
+
+  /// Exporta o histórico no formato indicado ('csv' ou 'json') e em seguida
+  /// abre a bottom sheet de compartilhamento.
+  ///
+  /// Retorna o caminho do arquivo gerado (mesmo quando o compartilhamento
+  /// for cancelado ou indisponível), para que o caller possa exibir um
+  /// fallback informando o local salvo.
+  static Future<ExportAndShareResult> exportAndShare(
+    List<ExposureSession> sessions, {
+    required String format,
+    String? subject,
+    String? text,
+  }) async {
+    final path = format.toLowerCase() == 'json'
+        ? await exportToJSON(sessions)
+        : await exportToCSV(sessions);
+
+    final share = await shareFile(path, subject: subject, text: text);
+    return ExportAndShareResult(path: path, shareResult: share);
+  }
+
   static String _formatDateTime(DateTime dt) {
     return '${dt.year}-${_pad(dt.month)}-${_pad(dt.day)} '
         '${_pad(dt.hour)}:${_pad(dt.minute)}:${_pad(dt.second)}';
   }
 
   static String _pad(int n) => n.toString().padLeft(2, '0');
+}
+
+/// Resultado combinado de exportação + compartilhamento.
+class ExportAndShareResult {
+  final String path;
+  final ShareResult shareResult;
+
+  const ExportAndShareResult({
+    required this.path,
+    required this.shareResult,
+  });
+
+  bool get wasShared => shareResult.status == ShareResultStatus.success;
+  bool get wasDismissed => shareResult.status == ShareResultStatus.dismissed;
+  bool get isUnavailable => shareResult.status == ShareResultStatus.unavailable;
 }
