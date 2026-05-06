@@ -217,6 +217,21 @@ class StorageService {
     await prefs.remove(_notificationPermissionAskedKey);
   }
 
+  static const String _batteryOptimizationAskedKey =
+      AppConstants.cacheKeyBatteryOptimizationAsked;
+
+  /// Verifica se já perguntamos ao usuário sobre isenção de bateria
+  static Future<bool> wasBatteryOptimizationAsked() async {
+    final prefs = await _preferences;
+    return prefs.getBool(_batteryOptimizationAskedKey) ?? false;
+  }
+
+  /// Marca que já perguntamos sobre isenção de bateria
+  static Future<void> setBatteryOptimizationAsked() async {
+    final prefs = await _preferences;
+    await prefs.setBool(_batteryOptimizationAskedKey, true);
+  }
+
   // Configurações do app
 
   /// Salva o estado do modo demo

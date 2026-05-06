@@ -6,6 +6,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/providers/exposure_provider.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/foreground_service.dart';
 import '../../core/services/storage_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,8 +20,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _requestNotificationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _requestNotificationPermission();
+      await _requestBatteryOptimization();
       _checkPendingSession();
     });
   }
@@ -196,6 +198,51 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Isenção de otimização de bateria
+  Future<void> _requestBatteryOptimization() async {
+    if (kIsWeb) return;
+
+    final isIgnoring = await ForegroundService.isIgnoringBatteryOptimizations();
+    if (isIgnoring) return;
+
+    final alreadyAsked = await StorageService.wasBatteryOptimizationAsked();
+    if (alreadyAsked) return;
+
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: const Row(
+          children: [
+            Icon(Icons.battery_saver, color: AppColors.warning),
+            SizedBox(width: 8),
+            Flexible(child: Text(AppStrings.batteryDialogTitle)),
+          ],
+        ),
+        content: const Text(AppStrings.batteryDialogBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(AppStrings.later),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(AppStrings.batteryDialogAllow),
+          ),
+        ],
+      ),
+    );
+
+    await StorageService.setBatteryOptimizationAsked();
+    if (shouldRequest == true) {
+      await ForegroundService.requestIgnoreBatteryOptimization();
+    }
+  }
+
   // Permissão de notificação
   Future<void> _requestNotificationPermission() async {
     if (kIsWeb) return;
@@ -213,11 +260,12 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Row(
           children: [
             Icon(Icons.notifications_active, color: AppColors.warning),
             SizedBox(width: 8),
-            Text(AppStrings.notificationsDialogTitle),
+            Flexible(child: Text(AppStrings.notificationsDialogTitle)),
           ],
         ),
         content: const Text(AppStrings.notificationsDialogBody),

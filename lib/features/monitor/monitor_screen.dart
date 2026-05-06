@@ -25,11 +25,13 @@ class _MonitorScreenState extends State<MonitorScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // Inicia monitoramento após construção do widget
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = context.read<ExposureProvider>();
       if (!provider.isMonitoring) {
-        provider.startMonitoring();
+        final started = await provider.startMonitoring();
+        if (!started && mounted) {
+          _showConnectionFailedDialog();
+        }
       }
     });
   }
@@ -51,6 +53,47 @@ class _MonitorScreenState extends State<MonitorScreen>
         provider.retryConnection();
       }
     }
+  }
+
+  void _showConnectionFailedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Sensor não encontrado'),
+        content: const Text(
+          'Não foi possível estabelecer conexão com o dispositivo. '
+          'Verifique se o SunSense está ligado e na mesma rede.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Voltar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<ExposureProvider>().startMonitoring(force: true);
+            },
+            child: const Text('Continuar mesmo assim'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final provider = context.read<ExposureProvider>();
+              final started = await provider.startMonitoring();
+              if (!started && mounted) {
+                _showConnectionFailedDialog();
+              }
+            },
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<bool> _onWillPop() async {
@@ -492,7 +535,7 @@ class _MonitorScreenState extends State<MonitorScreen>
               final reconnected = await provider.retryConnection();
               if (!context.mounted) return;
               if (reconnected) {
-                provider.startMonitoring();
+                provider.startMonitoring(force: true);
               }
             },
             icon: const Icon(Icons.refresh),

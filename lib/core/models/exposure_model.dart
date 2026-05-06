@@ -30,6 +30,7 @@ class ExposureSession {
   final String skinType;
   final double maxExposurePercent;
   final double averageExposurePercent;
+  final double averageUVIndex;
   final double maxUVIndex;
   final List<UVReading> readings;
 
@@ -41,6 +42,7 @@ class ExposureSession {
     required this.skinType,
     required this.maxExposurePercent,
     this.averageExposurePercent = 0.0,
+    required this.averageUVIndex,
     required this.maxUVIndex,
     this.readings = const [],
   });
@@ -58,6 +60,7 @@ class ExposureSession {
     String? skinType,
     double? maxExposurePercent,
     double? averageExposurePercent,
+    double? averageUVIndex,
     double? maxUVIndex,
     List<UVReading>? readings,
   }) {
@@ -70,6 +73,7 @@ class ExposureSession {
       maxExposurePercent: maxExposurePercent ?? this.maxExposurePercent,
       averageExposurePercent:
           averageExposurePercent ?? this.averageExposurePercent,
+      averageUVIndex: averageUVIndex ?? this.averageUVIndex,
       maxUVIndex: maxUVIndex ?? this.maxUVIndex,
       readings: readings ?? this.readings,
     );
@@ -83,6 +87,7 @@ class ExposureSession {
         'skinType': skinType,
         'maxExposurePercent': maxExposurePercent,
         'averageExposurePercent': averageExposurePercent,
+        'averageUVIndex': averageUVIndex,
         'maxUVIndex': maxUVIndex,
         'readings': readings.map((r) => r.toJson()).toList(),
       };
@@ -103,6 +108,7 @@ class ExposureSession {
             (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
         averageExposurePercent:
             (json['averageExposurePercent'] as num?)?.toDouble() ?? 0.0,
+        averageUVIndex: (json['averageUVIndex'] as num).toDouble(),
         maxUVIndex: (json['maxUVIndex'] as num?)?.toDouble() ?? 0.0,
         readings: (json['readings'] as List<dynamic>?)
                 ?.map((r) {
@@ -123,6 +129,7 @@ class ExposureSession {
         spf: 0,
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 0,
+        averageUVIndex: 0,
         maxUVIndex: 0,
       );
     }

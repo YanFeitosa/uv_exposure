@@ -57,6 +57,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 5.0,
         readings: [],
       );
       final path = await ExportService.exportToCSV([session]);
@@ -73,6 +74,7 @@ void main() {
         skinType: 'Tipo III - Média Clara',
         maxExposurePercent: 60,
         maxUVIndex: 8,
+        averageUVIndex: 6.0,
       );
       final path = await ExportService.exportToCSV([session]);
       final content = File(path).readAsStringSync();
@@ -90,6 +92,7 @@ void main() {
           skinType: 'Tipo II - Clara',
           maxExposurePercent: 10.0 * (i + 1),
           maxUVIndex: 5.0 + i,
+          averageUVIndex: 4.0 + i,
         ),
       );
       final path = await ExportService.exportToCSV(sessions);

@@ -40,6 +40,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 45.5,
         maxUVIndex: 7.2,
+        averageUVIndex: 6.1,
         readings: [
           UVReading(uvIndex: 5.0, timestamp: DateTime(2026, 4, 10, 10, 5)),
           UVReading(uvIndex: 7.2, timestamp: DateTime(2026, 4, 10, 10, 30)),
@@ -53,6 +54,7 @@ void main() {
         skinType: 'Tipo IV - Morena',
         maxExposurePercent: 20.3,
         maxUVIndex: 4.1,
+        averageUVIndex: 3.5,
         readings: [],
       ),
     ];
@@ -101,6 +103,7 @@ void main() {
           skinType: 'Tipo I, Muito Clara',
           maxExposurePercent: 10.0,
           maxUVIndex: 3.0,
+          averageUVIndex: 2.5,
           readings: [],
         ),
       ];

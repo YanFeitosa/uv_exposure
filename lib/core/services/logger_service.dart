@@ -32,8 +32,10 @@ class LoggerService {
   }
 
   /// Log de nível warning (situação inesperada, mas recuperável)
-  static void warning(String message, {String? tag, Object? error}) {
-    _log(LogLevel.warning, message, tag: tag, error: error);
+  static void warning(String message,
+      {String? tag, Object? error, StackTrace? stackTrace}) {
+    _log(LogLevel.warning, message,
+        tag: tag, error: error, stackTrace: stackTrace);
   }
 
   /// Log de nível error (falha que requer atenção)

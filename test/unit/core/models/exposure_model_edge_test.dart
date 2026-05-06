@@ -154,6 +154,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 5.0,
       );
       final json = session.toJson();
       final restored = ExposureSession.fromJson(json);
@@ -169,6 +170,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 5.0,
       );
       final json = session.toJson();
       final restored = ExposureSession.fromJson(json);
@@ -184,6 +186,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 0,
         maxUVIndex: 0,
+        averageUVIndex: 0.0,
       );
       expect(session.duration, equals(const Duration(hours: 1)));
     });
@@ -198,6 +201,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 5.0,
       );
       expect(session.duration, equals(Duration.zero));
     });
@@ -211,6 +215,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 5.0,
       );
       final modified = original.copyWith(
         maxExposurePercent: 99.9,

@@ -84,14 +84,14 @@ class HistoryProvider extends ChangeNotifier {
     Duration totalDuration = Duration.zero;
     double totalExposure = 0;
     double maxExposure = 0;
-    double totalUVIndex = 0;
+    double weightedUVIndex = 0;
     double maxUVIndex = 0;
 
     for (final session in _sessions) {
       totalDuration += session.duration;
       totalExposure +=
           session.averageExposurePercent * session.duration.inSeconds;
-      totalUVIndex += session.maxUVIndex;
+      weightedUVIndex += session.averageUVIndex * session.duration.inSeconds;
 
       if (session.maxExposurePercent > maxExposure) {
         maxExposure = session.maxExposurePercent;
@@ -108,7 +108,9 @@ class HistoryProvider extends ChangeNotifier {
           ? totalExposure / totalDuration.inSeconds
           : 0.0,
       'maxExposure': maxExposure,
-      'averageUVIndex': totalUVIndex / _sessions.length,
+      'averageUVIndex': totalDuration.inSeconds > 0
+          ? weightedUVIndex / totalDuration.inSeconds
+          : 0.0,
       'maxUVIndex': maxUVIndex,
     };
   }

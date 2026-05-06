@@ -59,6 +59,8 @@ class AppConstants {
   static const Duration cacheExpiration = Duration(minutes: 5);
   static const String cacheKeyNotificationPermission =
       'notification_permission_asked';
+  static const String cacheKeyBatteryOptimizationAsked =
+      'battery_optimization_asked';
   static const String cacheKeyDemoMode = 'demo_mode_enabled';
   static const String cacheKeySoundAlarm = 'sound_alarm_enabled';
 

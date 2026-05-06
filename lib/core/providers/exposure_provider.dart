@@ -223,21 +223,31 @@ class ExposureProvider extends ChangeNotifier {
     _model.reset();
   }
 
-  /// Inicia o monitoramento de exposição UV
-  Future<void> startMonitoring() async {
-    if (_isMonitoring) return;
+  /// Inicia o monitoramento de exposição UV.
+  /// Retorna false (sem iniciar) se não houver conexão, a menos que [force] seja true.
+  Future<bool> startMonitoring({bool force = false}) async {
+    if (_isMonitoring) return false;
+
+    if (!_isDemoMode && !force) {
+      await _checkConnection();
+      if (_connectionStatus == ConnectionStatus.disconnected) {
+        return false;
+      }
+    }
 
     _resetState();
     _isMonitoring = true;
     _currentSessionId = DateTime.now().millisecondsSinceEpoch.toString();
     _sessionStartTime = DateTime.now();
 
-    await _checkConnection();
+    if (_isDemoMode || force) {
+      _connectionStatus = _isDemoMode
+          ? ConnectionStatus.connected
+          : _connectionStatus;
+    }
 
-    // Inicia o Foreground Service (Android) para manter o app vivo
     await ForegroundService.start();
 
-    // Inicia escuta UDP multicast (canal primário de dados)
     if (!_isDemoMode) {
       try {
         await MulticastService.start();
@@ -247,7 +257,6 @@ class ExposureProvider extends ChangeNotifier {
       }
     }
 
-    // Timer principal (1 segundo)
     _lastTickTime = DateTime.now();
     _timer = Timer.periodic(
       const Duration(seconds: 1),
@@ -255,6 +264,7 @@ class ExposureProvider extends ChangeNotifier {
     );
 
     notifyListeners();
+    return true;
   }
 
   /// Para o monitoramento e salva a sessão no histórico
@@ -595,6 +605,10 @@ class ExposureProvider extends ChangeNotifier {
     final avgExposure = _exposureSampleCount > 0
         ? _exposureSampleSum / _exposureSampleCount
         : _model.accumulatedExposurePercent;
+    final avgUVIndex = _sessionReadings.isNotEmpty
+        ? _sessionReadings.map((r) => r.uvIndex).reduce((a, b) => a + b) /
+            _sessionReadings.length
+        : _currentUVIndex;
 
     final session = ExposureSession(
       id: _currentSessionId!,
@@ -604,6 +618,7 @@ class ExposureProvider extends ChangeNotifier {
       skinType: _skinType,
       maxExposurePercent: _model.accumulatedExposurePercent,
       averageExposurePercent: avgExposure,
+      averageUVIndex: avgUVIndex,
       maxUVIndex: _maxUVIndex,
       readings: _sessionReadings,
     );

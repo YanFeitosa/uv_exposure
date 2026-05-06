@@ -260,6 +260,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 7,
       );
       expect(session.duration, equals(const Duration(hours: 1, minutes: 30)));
     });
@@ -273,6 +274,7 @@ void main() {
         skinType: 'Tipo III - Média Clara',
         maxExposurePercent: 75.5,
         maxUVIndex: 8.5,
+        averageUVIndex: 7.75,
         readings: [
           UVReading(uvIndex: 7, timestamp: DateTime(2026, 3, 15, 10, 15, 0)),
           UVReading(uvIndex: 8.5, timestamp: DateTime(2026, 3, 15, 10, 30, 0)),
@@ -294,6 +296,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 7,
       );
       final modified = original.copyWith(maxExposurePercent: 80.0);
       expect(modified.id, equals(original.id));
@@ -309,6 +312,7 @@ void main() {
         skinType: 'Tipo II - Clara',
         maxExposurePercent: 50,
         maxUVIndex: 7,
+        averageUVIndex: 7,
       );
       final json = session.toJson();
       for (final key in [

@@ -65,6 +65,15 @@ class AppStrings {
       'Isso ajuda a proteger sua pele de queimaduras.';
   static const String later = 'Depois';
   static const String allow = 'Permitir';
+
+  // Diálogo de Isenção de Otimização de Bateria
+  static const String batteryDialogTitle = 'Otimização de Bateria';
+  static const String batteryDialogBody =
+      'O Android pode suspender o monitoramento UV quando o aplicativo '
+      'estiver em segundo plano.\n\n'
+      'Para garantir o monitoramento contínuo, permita que o SunSense '
+      'seja isento de otimizações de bateria.';
+  static const String batteryDialogAllow = 'Permitir';
   static const String wifiInfoMessage =
       'Certifique-se de que seu celular está conectado à mesma rede WiFi do dispositivo SunSense.';
   static const String spfPrefix = 'FPS';
