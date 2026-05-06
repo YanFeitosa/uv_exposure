@@ -16,6 +16,13 @@ class NotificationService {
   /// Verifica se as notificações estão habilitadas
   static bool get isEnabled => _isInitialized && _permissionGranted;
 
+  /// Simula estado inicializado com permissão concedida em testes
+  @visibleForTesting
+  static void initForTest() {
+    _isInitialized = true;
+    _permissionGranted = true;
+  }
+
   /// Verifica se está em plataforma suportada (não-web)
   static bool get _isSupported => !kIsWeb;
 
