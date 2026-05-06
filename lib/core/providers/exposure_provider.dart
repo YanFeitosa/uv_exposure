@@ -241,9 +241,8 @@ class ExposureProvider extends ChangeNotifier {
     _sessionStartTime = DateTime.now();
 
     if (_isDemoMode || force) {
-      _connectionStatus = _isDemoMode
-          ? ConnectionStatus.connected
-          : _connectionStatus;
+      _connectionStatus =
+          _isDemoMode ? ConnectionStatus.connected : _connectionStatus;
     }
 
     await ForegroundService.start();
