@@ -43,7 +43,7 @@ void main() {
         routes: {
           '/history': (_) => const Scaffold(body: Text('History')),
           '/about': (_) => const Scaffold(body: Text('About')),
-          '/monitor': (_) => Scaffold(body: Text(AppStrings.elapsedTime)),
+          '/monitor': (_) => const Scaffold(body: Text(AppStrings.elapsedTime)),
           '/settings': (_) => const SettingsScreen(),
         },
       ),

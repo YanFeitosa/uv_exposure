@@ -77,7 +77,7 @@ class ExportService {
       if (kDebugMode) {
         debugPrint('ExportService.shareFile falhou: $e');
       }
-      return ShareResult(
+      return const ShareResult(
         'Compartilhamento indisponível',
         ShareResultStatus.unavailable,
       );
