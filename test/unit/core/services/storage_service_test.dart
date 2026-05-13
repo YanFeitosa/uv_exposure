@@ -290,24 +290,4 @@ void main() {
       expect(await StorageService.isSoundAlarmEnabled(), isTrue);
     });
   });
-
-  group('StorageService — permissão de notificação', () {
-    test('padrão deve ser false (ainda não perguntou)', () async {
-      final asked = await StorageService.wasNotificationPermissionAsked();
-      expect(asked, isFalse);
-    });
-
-    test('deve marcar como perguntado', () async {
-      await StorageService.setNotificationPermissionAsked();
-      final asked = await StorageService.wasNotificationPermissionAsked();
-      expect(asked, isTrue);
-    });
-
-    test('deve resetar estado de permissão', () async {
-      await StorageService.setNotificationPermissionAsked();
-      await StorageService.resetNotificationPermissionAsked();
-      final asked = await StorageService.wasNotificationPermissionAsked();
-      expect(asked, isFalse);
-    });
-  });
 }

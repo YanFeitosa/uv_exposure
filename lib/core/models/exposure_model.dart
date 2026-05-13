@@ -29,7 +29,6 @@ class ExposureSession {
   final double spf;
   final String skinType;
   final double maxExposurePercent;
-  final double averageExposurePercent;
   final double averageUVIndex;
   final double maxUVIndex;
   final List<UVReading> readings;
@@ -41,7 +40,6 @@ class ExposureSession {
     required this.spf,
     required this.skinType,
     required this.maxExposurePercent,
-    this.averageExposurePercent = 0.0,
     required this.averageUVIndex,
     required this.maxUVIndex,
     this.readings = const [],
@@ -59,7 +57,6 @@ class ExposureSession {
     double? spf,
     String? skinType,
     double? maxExposurePercent,
-    double? averageExposurePercent,
     double? averageUVIndex,
     double? maxUVIndex,
     List<UVReading>? readings,
@@ -71,8 +68,6 @@ class ExposureSession {
       spf: spf ?? this.spf,
       skinType: skinType ?? this.skinType,
       maxExposurePercent: maxExposurePercent ?? this.maxExposurePercent,
-      averageExposurePercent:
-          averageExposurePercent ?? this.averageExposurePercent,
       averageUVIndex: averageUVIndex ?? this.averageUVIndex,
       maxUVIndex: maxUVIndex ?? this.maxUVIndex,
       readings: readings ?? this.readings,
@@ -86,7 +81,6 @@ class ExposureSession {
         'spf': spf,
         'skinType': skinType,
         'maxExposurePercent': maxExposurePercent,
-        'averageExposurePercent': averageExposurePercent,
         'averageUVIndex': averageUVIndex,
         'maxUVIndex': maxUVIndex,
         'readings': readings.map((r) => r.toJson()).toList(),
@@ -106,9 +100,8 @@ class ExposureSession {
         skinType: (json['skinType'] as String?) ?? 'Tipo II - Clara',
         maxExposurePercent:
             (json['maxExposurePercent'] as num?)?.toDouble() ?? 0.0,
-        averageExposurePercent:
-            (json['averageExposurePercent'] as num?)?.toDouble() ?? 0.0,
-        averageUVIndex: (json['averageUVIndex'] as num).toDouble(),
+        averageUVIndex: (json['averageUVIndex'] as num?)?.toDouble() ??
+            _averageUVFromRaw(json['readings'] as List<dynamic>?),
         maxUVIndex: (json['maxUVIndex'] as num?)?.toDouble() ?? 0.0,
         readings: (json['readings'] as List<dynamic>?)
                 ?.map((r) {
@@ -133,6 +126,22 @@ class ExposureSession {
         maxUVIndex: 0,
       );
     }
+  }
+
+  /// Calcula a média dos valores UV a partir da lista bruta de leituras JSON.
+  /// Usado como fallback quando [averageUVIndex] está ausente no JSON persistido.
+  static double _averageUVFromRaw(List<dynamic>? raw) {
+    if (raw == null || raw.isEmpty) return 0.0;
+    double sum = 0.0;
+    int count = 0;
+    for (final r in raw) {
+      final uv = ((r as Map<String, dynamic>)['uvIndex'] as num?)?.toDouble();
+      if (uv != null) {
+        sum += uv;
+        count++;
+      }
+    }
+    return count > 0 ? sum / count : 0.0;
   }
 }
 

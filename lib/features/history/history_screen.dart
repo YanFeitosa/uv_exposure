@@ -214,8 +214,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                AppStrings.averageExposure,
-                '${((stats['averageExposure'] ?? 0.0) as double).toStringAsFixed(1)}%',
+                AppStrings.maxExposure,
+                '${((stats['maxExposure'] ?? 0.0) as double).toStringAsFixed(1)}%',
                 Icons.wb_sunny,
                 AppColors.warning,
               ),

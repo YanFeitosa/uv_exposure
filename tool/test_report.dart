@@ -29,6 +29,12 @@ void main() async {
   final integrationCount = _countTests(integrationFiles);
   final totalCount = unitCount + widgetCount + integrationCount;
 
+  // setUpAll calls — each generates 2 synthetic testStart events in the
+  // --machine protocol (setUpAll + tearDownAll), which causes VS Code's
+  // test runner to report a higher count than `flutter test` compact.
+  final setupAllCount = _countSetupAll(allTestFiles);
+  final vscodeEquivalent = totalCount + setupAllCount * 2;
+
   // 3. Scan tags
   final tagMap = _scanTags(allTestFiles);
 
@@ -60,6 +66,15 @@ void main() async {
   print('  ────────────────────────');
   print(
       '  Total:             ${totalCount.toString().padLeft(4)} (${allTestFiles.length} files)');
+  print('');
+  print('── Contagem VS Code ─────────────────────────');
+  print(
+      '  O VS Code Test Runner reporta $vscodeEquivalent testes porque usa o');
+  print('  protocolo --machine, que dispara eventos testStart sintéticos para');
+  print('  cada setUpAll() encontrado ($setupAllCount setUpAll × 2 eventos = '
+      '${setupAllCount * 2} extras).');
+  print(
+      '  flutter test (compact): $totalCount  |  VS Code runner: $vscodeEquivalent');
   print('');
 
   // ── TAG SUMMARY ──
@@ -194,6 +209,20 @@ int _countTests(List<String> files) {
   for (final path in files) {
     final content = File(path).readAsStringSync();
     count += testPattern.allMatches(content).length;
+  }
+  return count;
+}
+
+/// Conta chamadas de setUpAll() nos arquivos de teste.
+/// Cada setUpAll() gera 2 eventos testStart sintéticos no protocolo --machine
+/// (um "(setUpAll)" e um "(tearDownAll)" automático), que é o motivo pelo qual
+/// o VS Code Test Runner exibe um número maior que `flutter test` compact.
+int _countSetupAll(List<String> files) {
+  int count = 0;
+  final pattern = RegExp(r'''\bsetUpAll\s*\(''');
+  for (final path in files) {
+    final content = File(path).readAsStringSync();
+    count += pattern.allMatches(content).length;
   }
   return count;
 }

@@ -66,8 +66,6 @@ class ExposureProvider extends ChangeNotifier {
   DateTime? _sessionStartTime;
   List<UVReading> _sessionReadings = [];
   double _maxUVIndex = 0.0;
-  double _exposureSampleSum = 0.0;
-  int _exposureSampleCount = 0;
 
   // Getters públicos
   bool get isMonitoring => _isMonitoring;
@@ -211,8 +209,6 @@ class ExposureProvider extends ChangeNotifier {
     _stoppedDueToDisconnection = false;
     _sessionReadings = [];
     _maxUVIndex = 0.0;
-    _exposureSampleSum = 0.0;
-    _exposureSampleCount = 0;
     _lastTickTime = null;
     _gapDetected = false;
     _lastGapDurationSeconds = 0;
@@ -305,8 +301,6 @@ class ExposureProvider extends ChangeNotifier {
     // Acumula exposição UV
     _secondsElapsed++;
     _model.accumulateExposure(_currentUVIndex, 1);
-    _exposureSampleSum += _model.accumulatedExposurePercent;
-    _exposureSampleCount++;
 
     // Busca dados UV do sensor periodicamente
     if (_secondsElapsed % AppConstants.dataFetchInterval.inSeconds == 0) {
@@ -601,9 +595,6 @@ class ExposureProvider extends ChangeNotifier {
   Future<void> _saveSession() async {
     if (_currentSessionId == null || _sessionStartTime == null) return;
 
-    final avgExposure = _exposureSampleCount > 0
-        ? _exposureSampleSum / _exposureSampleCount
-        : _model.accumulatedExposurePercent;
     final avgUVIndex = _sessionReadings.isNotEmpty
         ? _sessionReadings.map((r) => r.uvIndex).reduce((a, b) => a + b) /
             _sessionReadings.length
@@ -616,7 +607,6 @@ class ExposureProvider extends ChangeNotifier {
       spf: _spf,
       skinType: _skinType,
       maxExposurePercent: _model.accumulatedExposurePercent,
-      averageExposurePercent: avgExposure,
       averageUVIndex: avgUVIndex,
       maxUVIndex: _maxUVIndex,
       readings: _sessionReadings,
