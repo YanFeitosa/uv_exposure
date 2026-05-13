@@ -70,6 +70,11 @@ class StorageService {
 
   /// Salva uma sessão no histórico
   static Future<void> saveExposureSession(ExposureSession session) async {
+    final endTime = session.endTime;
+    if (endTime == null || endTime.isBefore(session.startTime)) {
+      return;
+    }
+
     final prefs = await _preferences;
     final history = await getExposureHistory();
 
@@ -93,12 +98,49 @@ class StorageService {
 
     try {
       final list = jsonDecode(data) as List<dynamic>;
-      return list
-          .map((item) => ExposureSession.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final sessions = <ExposureSession>[];
+      var removedInvalidEntries = false;
+
+      for (final item in list) {
+        final raw = item is Map ? Map<String, dynamic>.from(item) : null;
+        final session = raw == null ? null : _parseStoredHistorySession(raw);
+        if (session == null) {
+          removedInvalidEntries = true;
+          continue;
+        }
+        sessions.add(session);
+      }
+
+      if (removedInvalidEntries) {
+        final sanitized = sessions.map((session) => session.toJson()).toList();
+        await prefs.setString(
+          AppConstants.cacheKeyExposureHistory,
+          jsonEncode(sanitized),
+        );
+      }
+
+      return sessions;
     } catch (_) {
       return [];
     }
+  }
+
+  static ExposureSession? _parseStoredHistorySession(
+      Map<String, dynamic> json) {
+    final id = json['id'];
+    final startTimeRaw = json['startTime'];
+    final endTimeRaw = json['endTime'];
+
+    if (id is! String || id.isEmpty) return null;
+    if (startTimeRaw is! String || endTimeRaw is! String) return null;
+
+    final startTime = DateTime.tryParse(startTimeRaw);
+    final endTime = DateTime.tryParse(endTimeRaw);
+    if (startTime == null || endTime == null || endTime.isBefore(startTime)) {
+      return null;
+    }
+
+    return ExposureSession.fromJson(json);
   }
 
   /// Recupera sessões de um período específico
@@ -192,44 +234,6 @@ class StorageService {
       'defaultSpf': prefs.getString(AppConstants.cacheKeyDefaultSpf),
       'defaultSkinType': prefs.getString(AppConstants.cacheKeyDefaultSkinType),
     };
-  }
-
-  // Controle de permissões
-
-  static const String _notificationPermissionAskedKey =
-      AppConstants.cacheKeyNotificationPermission;
-
-  /// Verifica se já perguntamos ao usuário sobre permissão de notificações
-  static Future<bool> wasNotificationPermissionAsked() async {
-    final prefs = await _preferences;
-    return prefs.getBool(_notificationPermissionAskedKey) ?? false;
-  }
-
-  /// Marca que já perguntamos sobre permissão de notificações
-  static Future<void> setNotificationPermissionAsked() async {
-    final prefs = await _preferences;
-    await prefs.setBool(_notificationPermissionAskedKey, true);
-  }
-
-  /// Reseta o estado da pergunta de permissão
-  static Future<void> resetNotificationPermissionAsked() async {
-    final prefs = await _preferences;
-    await prefs.remove(_notificationPermissionAskedKey);
-  }
-
-  static const String _batteryOptimizationAskedKey =
-      AppConstants.cacheKeyBatteryOptimizationAsked;
-
-  /// Verifica se já perguntamos ao usuário sobre isenção de bateria
-  static Future<bool> wasBatteryOptimizationAsked() async {
-    final prefs = await _preferences;
-    return prefs.getBool(_batteryOptimizationAskedKey) ?? false;
-  }
-
-  /// Marca que já perguntamos sobre isenção de bateria
-  static Future<void> setBatteryOptimizationAsked() async {
-    final prefs = await _preferences;
-    await prefs.setBool(_batteryOptimizationAskedKey, true);
   }
 
   // Configurações do app

@@ -123,7 +123,7 @@ class AppStrings {
   static const String last7Days = 'Últimos 7 Dias';
   static const String statistics = 'Estatísticas';
   static const String sessions = 'Sessões';
-  static const String averageExposure = 'Exp. Média';
+  static const String maxExposure = 'Exp. Máx.';
   static const String maxUV = 'UV Máx.';
   static const String totalTime = 'Tempo Total';
   static const String dailyExposure = 'Exposição Diária';

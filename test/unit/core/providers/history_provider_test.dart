@@ -16,7 +16,6 @@ void main() {
     String skinType = 'Tipo II - Clara',
     double maxExposure = 50,
     double maxUV = 7,
-    double? averageExposure,
   }) {
     return ExposureSession(
       id: id,
@@ -27,7 +26,6 @@ void main() {
       maxExposurePercent: maxExposure,
       maxUVIndex: maxUV,
       averageUVIndex: maxUV,
-      averageExposurePercent: averageExposure ?? maxExposure,
     );
   }
 
@@ -53,7 +51,6 @@ void main() {
       final stats = provider.getStatistics();
       expect(stats['totalSessions'], equals(0));
       expect(stats['totalDuration'], equals(Duration.zero));
-      expect(stats['averageExposure'], equals(0.0));
       expect(stats['maxExposure'], equals(0.0));
       expect(stats['averageUVIndex'], equals(0.0));
       expect(stats['maxUVIndex'], equals(0.0));
@@ -74,7 +71,6 @@ void main() {
 
       expect(stats['totalSessions'], equals(1));
       expect(stats['totalDuration'], equals(const Duration(hours: 2)));
-      expect(stats['averageExposure'], closeTo(60.0, 0.01));
       expect(stats['maxExposure'], equals(60.0));
     });
 
@@ -100,8 +96,6 @@ void main() {
 
       expect(stats['totalSessions'], equals(2));
       expect(stats['totalDuration'], equals(const Duration(hours: 3)));
-      // média ponderada: (40*3600 + 80*7200) / 10800 ≈ 66.67
-      expect(stats['averageExposure'], closeTo(66.67, 0.01));
       expect(stats['maxExposure'], equals(80.0));
       // média ponderada: (6*3600 + 10*7200) / 10800 ≈ 8.67
       expect(stats['averageUVIndex'], closeTo(8.67, 0.01));
@@ -165,9 +159,31 @@ void main() {
 
       final todayData = data.last;
       expect(todayData['sessions'], equals(2));
-      // Média ponderada pelo tempo: (30×3600 + 50×7200) / (3600+7200) = 43.3̄
-      expect(todayData['exposure'], closeTo(43.33, 0.01));
+      expect(todayData['exposure'], closeTo(80.0, 0.01));
       expect(todayData['maxUVIndex'], equals(9.0));
+    });
+
+    test('uma sessão única deve refletir a exposição final da sessão no dia',
+        () async {
+      final today = DateTime.now();
+      final startOfToday = DateTime(today.year, today.month, today.day);
+
+      await StorageService.saveExposureSession(makeSession(
+        id: 'today-single',
+        startTime: startOfToday.add(const Duration(hours: 14)),
+        duration: const Duration(minutes: 20),
+        maxExposure: 150.0,
+        maxUV: 11.0,
+      ));
+
+      final provider = HistoryProvider();
+      await provider.loadHistory();
+      final data = provider.getDailyExposureData(1);
+
+      final todayData = data.last;
+      expect(todayData['sessions'], equals(1));
+      expect(todayData['exposure'], closeTo(150.0, 0.01));
+      expect(todayData['maxUVIndex'], equals(11.0));
     });
   });
 }
