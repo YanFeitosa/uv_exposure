@@ -115,7 +115,7 @@ class AppStrings {
       'Reconecte-se à rede WiFi do SunSense para continuar.';
 
   // Histórico
-  static const String exposureHistory = 'Histórico de Exposição';
+  static const String exposureHistory = 'Histórico';
   static const String noHistoryData = 'Nenhum dado de exposição registrado.';
   static const String today = 'Hoje';
   static const String yesterday = 'Ontem';

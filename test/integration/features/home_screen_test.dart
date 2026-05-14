@@ -132,33 +132,42 @@ void main() {
   });
 
   group('HomeScreen — integração: navegação', () {
-    testWidgets('ícone settings deve navegar para SettingsScreen',
+    testWidgets('menu hamburguer deve navegar para SettingsScreen',
         (tester) async {
       await tester.pumpWidget(buildHomeScreen());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      await tester.tap(find.byIcon(Icons.settings));
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(AppStrings.settings));
       await tester.pumpAndSettle();
       expect(find.byType(SettingsScreen), findsOneWidget);
     });
 
-    testWidgets('ícone history deve navegar para /history', (tester) async {
+    testWidgets('menu hamburguer deve navegar para /history', (tester) async {
       await tester.pumpWidget(buildHomeScreen());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      await tester.tap(find.byIcon(Icons.history));
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(AppStrings.exposureHistory));
       await tester.pumpAndSettle();
       expect(find.text('History'), findsOneWidget);
     });
 
-    testWidgets('ícone about deve navegar para /about', (tester) async {
+    testWidgets('menu hamburguer deve navegar para /about', (tester) async {
       await tester.pumpWidget(buildHomeScreen());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      await tester.tap(find.byTooltip(AppStrings.about));
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(AppStrings.about));
       await tester.pumpAndSettle();
       expect(find.text('About'), findsOneWidget);
     });

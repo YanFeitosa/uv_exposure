@@ -138,5 +138,23 @@ void main() {
       expect(AppColors.exposureWarning, equals(const Color(0xFFE6B800)));
       expect(AppColors.exposureDanger, equals(Colors.red));
     });
+
+    test('fototipos devem estar associados às cores definidas', () {
+      expect(
+        AppColors.getSkinTypeColor('Tipo I - Muito Clara'),
+        equals(const Color(0xFFD7A59C)),
+      );
+      expect(
+        AppColors.getSkinTypeColor('Tipo VI - Muito Escura'),
+        equals(const Color(0xFF57311A)),
+      );
+    });
+
+    test('fototipo desconhecido deve usar cor neutra de fallback', () {
+      expect(
+        AppColors.getSkinTypeColor('Fototipo inválido'),
+        equals(AppColors.textHint),
+      );
+    });
   });
 }

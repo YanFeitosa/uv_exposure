@@ -26,6 +26,25 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Widget _buildSkinTypeOption(String skinType) {
+    return Row(
+      children: [
+        Icon(
+          Icons.circle,
+          size: 20,
+          color: AppColors.getSkinTypeColor(skinType),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            skinType,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _onStartMonitoringPressed() async {
     await _requestBatteryOptimization();
     if (!mounted) return;
@@ -69,10 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       prefixIcon: Icon(Icons.person),
                     ),
                     initialValue: selectedSkinType,
+                    isExpanded: true,
                     items: skinTypes.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value),
+                        child: _buildSkinTypeOption(value),
                       );
                     }).toList(),
                     onChanged: (newValue) {
@@ -297,34 +317,57 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushNamed(context, '/monitor');
   }
 
+  void _openDrawerRoute(String route) {
+    Navigator.of(context).pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushNamed(context, route);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Container(
+                height: 116,
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+                color: AppColors.secondary,
+                alignment: Alignment.bottomLeft,
+                child: const Text(
+                  AppStrings.appName,
+                  style: TextStyle(
+                    color: AppColors.textOnSecondary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: const Text(AppStrings.exposureHistory),
+                onTap: () => _openDrawerRoute('/history'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text(AppStrings.settings),
+                onTap: () => _openDrawerRoute('/settings'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text(AppStrings.about),
+                onTap: () => _openDrawerRoute('/about'),
+              ),
+            ],
+          ),
+        ),
+      ),
       appBar: AppBar(
         title: const Text(AppStrings.appTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, '/settings');
-            },
-            tooltip: AppStrings.settings,
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.pushNamed(context, '/history');
-            },
-            tooltip: AppStrings.exposureHistory,
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              Navigator.pushNamed(context, '/about');
-            },
-            tooltip: AppStrings.about,
-          ),
-        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

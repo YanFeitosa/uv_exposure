@@ -2,7 +2,7 @@ name: uv_exposure_app
 description: "SunSense - UV Exposure Monitoring App"
 publish_to: 'none'
 
-version: 3.4.0+5
+version: 3.4.2+5
 
 environment:
   sdk: ^3.5.1
@@ -40,6 +40,7 @@ dependencies:
 
   # Compartilhamento de arquivos (bottom sheet nativo do sistema)
   share_plus: ^10.1.2
+  package_info_plus: ^9.0.1
 
 dependency_overrides:
   path_provider_android: ^2.2.22

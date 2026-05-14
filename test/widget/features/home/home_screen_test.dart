@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uv_exposure_app/core/constants/app_colors.dart';
 import 'package:uv_exposure_app/core/constants/app_strings.dart';
 import 'package:uv_exposure_app/core/providers/exposure_provider.dart';
 import 'package:uv_exposure_app/core/services/notification_service.dart';
@@ -52,14 +53,52 @@ void main() {
       expect(find.text(AppStrings.wifiInfoMessage), findsOneWidget);
     });
 
-    testWidgets('deve exibir ícones de navegação no AppBar', (tester) async {
+    testWidgets('deve exibir menu hamburguer com itens de navegação',
+        (tester) async {
       await tester.pumpWidget(buildHomeScreen());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      expect(find.byIcon(Icons.settings), findsOneWidget);
-      expect(find.byIcon(Icons.history), findsOneWidget);
-      expect(find.byTooltip(AppStrings.about), findsOneWidget);
+      expect(find.byIcon(Icons.menu), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.history), findsWidgets);
+      expect(find.byIcon(Icons.settings), findsWidgets);
+      expect(find.byIcon(Icons.info_outline), findsWidgets);
+      expect(find.text(AppStrings.exposureHistory), findsOneWidget);
+      expect(find.text(AppStrings.settings), findsOneWidget);
+      expect(find.text(AppStrings.about), findsOneWidget);
+    });
+
+    testWidgets('itens do drawer devem respeitar a ordem solicitada',
+        (tester) async {
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+
+      final historyY =
+          tester.getTopLeft(find.text(AppStrings.exposureHistory)).dy;
+      final settingsY = tester.getTopLeft(find.text(AppStrings.settings)).dy;
+      final aboutY = tester.getTopLeft(find.text(AppStrings.about)).dy;
+
+      expect(historyY, lessThan(settingsY));
+      expect(settingsY, lessThan(aboutY));
+    });
+
+    testWidgets('AppBar deve exibir apenas o menu hamburguer', (tester) async {
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.byIcon(Icons.menu), findsOneWidget);
+      expect(find.byIcon(Icons.settings), findsNothing);
+      expect(find.byIcon(Icons.history), findsNothing);
+      expect(find.byTooltip(AppStrings.about), findsNothing);
     });
   });
 
@@ -134,6 +173,28 @@ void main() {
       await tester.tap(find.byType(DropdownButtonFormField<String>).first);
       await tester.pumpAndSettle();
       expect(find.text('Tipo 0 - Demo'), findsWidgets);
+    });
+
+    testWidgets('dropdown de fototipo deve exibir indicador de cor',
+        (tester) async {
+      await tester.pumpWidget(buildHomeScreen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      await tester.tap(find.text(AppStrings.startMonitoring));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(DropdownButtonFormField<String>).first);
+      await tester.pumpAndSettle();
+
+      final skinTypeColorFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is Icon &&
+            widget.icon == Icons.circle &&
+            widget.color == AppColors.getSkinTypeColor('Tipo II - Clara'),
+      );
+
+      expect(skinTypeColorFinder, findsWidgets);
     });
 
     testWidgets('deve pré-selecionar último fototipo usado', (tester) async {

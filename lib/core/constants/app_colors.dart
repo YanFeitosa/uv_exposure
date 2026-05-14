@@ -70,6 +70,22 @@ class AppColors {
   static const Color surface = Colors.white;
   static const Color cardBackground = Color(0xFF77347A);
 
+  // Cores associadas aos fototipos de pele
+  static const Map<String, Color> skinTypeColors = {
+    'Tipo 0 - Demo': Colors.blueGrey,
+    'Tipo I - Muito Clara': Color(0xFFD7A59C),
+    'Tipo II - Clara': Color(0xFFCD9385),
+    'Tipo III - Média Clara': Color(0xFFB9806D),
+    'Tipo IV - Média Escura': Color(0xFFA06754),
+    'Tipo V - Escura': Color(0xFF74452B),
+    'Tipo VI - Muito Escura': Color(0xFF57311A),
+  };
+
+  /// Retorna a cor associada ao fototipo de pele.
+  static Color getSkinTypeColor(String skinType) {
+    return skinTypeColors[skinType] ?? textHint;
+  }
+
   /// Retorna a cor correspondente ao índice UV (escala OMS)
   static Color getUVIndexColor(double uvIndex) {
     if (uvIndex <= 2) return uvLow;

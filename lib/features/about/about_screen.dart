@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 
-class AboutScreen extends StatelessWidget {
+class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
+
+  @override
+  State<AboutScreen> createState() => _AboutScreenState();
+}
+
+class _AboutScreenState extends State<AboutScreen> {
+  late final Future<String> _versionFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _versionFuture = _loadVersion();
+  }
+
+  Future<String> _loadVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      return packageInfo.version;
+    } catch (_) {
+      return '...';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +54,18 @@ class AboutScreen extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 4),
-            Text(
-              '${AppStrings.aboutVersion} 3.0.2',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textHint,
-                  ),
+            FutureBuilder<String>(
+              future: _versionFuture,
+              builder: (context, snapshot) {
+                final version = snapshot.data ?? '...';
+
+                return Text(
+                  '${AppStrings.aboutVersion} $version',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textHint,
+                      ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
